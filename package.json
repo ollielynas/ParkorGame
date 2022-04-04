@@ -6,8 +6,7 @@
     "build": "cross-env NODE_ENV=production webpack",
     "serve": "webpack-dev-server --hot",
     "test": "mocha tests",
-    "deploy": "gh-pages -d dist"
-
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "repository": {
     "type": "git",
