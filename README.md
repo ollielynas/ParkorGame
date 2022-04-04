@@ -13,12 +13,3 @@ The following command builds the project in production mode.
 
 
 For more predefined commands, see `package.json`, item `scripts`.
-
-## Contributors ##
-
-yahiko
-
-
-## Licence ##
-
-MIT
