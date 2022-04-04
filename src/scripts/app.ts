@@ -130,6 +130,8 @@ let keys:string[] = [""]
 
 let levelData:any;
 let staticLevelContainer = new PIXI.Container()
+let jumpBuffer = 0;
+
 
 backgroundImage.x  = 0;
 backgroundImage.y = 0;  
@@ -278,17 +280,21 @@ function create() {
             saveCookie();
         }
 
-        if (event.key === playerInfo.jumpKey && playerInfo.grounded) {
+        if (event.key === playerInfo.jumpKey) {
+            jumpBuffer = 10;
+        if (coyoteTime > 0){
             if (event.repeat) {return}
             console.log("jumped");
-            playerInfo.vy += 30;
+            playerInfo.vy = 30;
+            coyoteTime = 0;
+            
         }else if (playerInfo.leftWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
             playerInfo.vx -= 20;
             playerInfo.vy += 30;
         }else if (playerInfo.rightWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
             playerInfo.vx += 20;
             playerInfo.vy += 30;
-        }
+        }}
 
         if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash) {
             if (keys.includes(playerInfo.leftKey) && playerInfo.magicJuice >= 25) {
@@ -392,7 +398,7 @@ function create() {
     setInterval(update, 1000.0 / engine.fpsMax);
     render();
 } // create
-
+let coyoteTime = 0;
 let camHeight:number = (2000/window.innerHeight)*-1.5; // 
 let camWidth:number = (2000/window.innerWidth)*-1.5;
 function update() {
@@ -542,23 +548,23 @@ if (playerInfo.leftWall) {
     let rightwallfound = false;
     let groundfound = false;
     let rooffound = false;
+    if (jumpBuffer > 0) {jumpBuffer--;}
     for (var i = 0; i < levelData.phyBox.length; i++) {
-        if (!leftwallfound
-            && player.x >= levelData.phyBox[i][0][0]
+        if (!leftwallfound){
+        if ( player.x >= levelData.phyBox[i][0][0]
             && player.y  + player.height*(3/4) > levelData.phyBox[i][0][1]
             && player.x  <= levelData.phyBox[i][1][0]
             && player.y +  player.height/4 < levelData.phyBox[i][1][1]
             ) {
-                console.log("leftwall");
                 playerInfo.leftWall = true;
-                console.log(leftwallfound)
                 leftwallfound = true;
                 player.x = levelData.phyBox[i][1][0];
                 if (playerInfo.vx > 0) {playerInfo.vx = 0;}
                 
-            }else{playerInfo.leftWall = false;}
+            }else{playerInfo.leftWall = false;}}
             // |---------------------- cheak right wall --------------------|
-        if (!rightwallfound && player.x + player.width > levelData.phyBox[i][0][0]
+        if (!rightwallfound){
+        if (player.x + player.width > levelData.phyBox[i][0][0]
             && player.y  + player.height*(3/4) > levelData.phyBox[i][0][1]
             && player.x + player.width < levelData.phyBox[i][1][0]
             && player.y +  player.height/4 < levelData.phyBox[i][1][1]
@@ -568,7 +574,7 @@ if (playerInfo.leftWall) {
                 if (playerInfo.vx < 0) {playerInfo.vx = 0;}
                 rightwallfound = true;
                 
-            }else{playerInfo.rightWall = false;}
+            }else{playerInfo.rightWall = false;}}
             // |---------------------- cheak ground --------------------|
     if (!groundfound && player.y+player.height >= levelData.phyBox[i][0][1] && player.y+player.height <= levelData.phyBox[i][1][1]) { 
         if (player.x+ (player.width-3) > levelData.phyBox[i][0][0] && player.x +3 < levelData.phyBox[i][1][0]) {
@@ -579,17 +585,25 @@ if (playerInfo.leftWall) {
             player.y = levelData.phyBox[i][0][1]-player.height;
         }
         playerInfo.grounded = true;
+        if (jumpBuffer > 0) {playerInfo.vy = 30; jumpBuffer = 0};
+        if (playerInfo.vy < 25) {
+        coyoteTime = 30;
+        }
         if (playerInfo.vy == 0 && playerInfo.magicJuice < playerInfo.magicJuiceMax ) {
             playerInfo.magicJuice += 0.25;
             if (playerInfo.vx == 0) {
                 playerInfo.magicJuice += 0.25;
-            }
+            }   
             document.documentElement.style.setProperty("--manaValue", (playerInfo.magicJuice/4)+"em");
         }
         // playerStats.vy += 500; // |--------------remobve later-------------------------------------------------|
 
         groundfound = true;
-    }else {playerInfo.grounded = false;}}
+    }else {playerInfo.grounded = false;
+        if (coyoteTime > 0) {
+            coyoteTime--;
+        }
+    }}
 
     if (!rooffound && player.y -10 >= levelData.phyBox[i][0][1] && player.y -10 <= levelData.phyBox[i][1][1]) { 
             if (player.x+ (player.width-3) > levelData.phyBox[i][0][0] && player.x +3 < levelData.phyBox[i][1][0]) {
