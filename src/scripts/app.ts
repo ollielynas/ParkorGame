@@ -50,6 +50,17 @@ let engine = new Engine({
     fpsMax: 60,
 });
 
+function deleteAllCookies() {
+    var cookies = document.cookie.split(";");
+
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        var eqPos = cookie.indexOf("=");
+        var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+}
+
 function setCookie(name:string,value:any,days:number) {
     var expires = "";
     if (days) {
@@ -90,11 +101,11 @@ let playerInfo:{[name:string]:any} = {
     // upKey: "ArrowUp",
     // downKey: "ArrowDown",
     // jumpKey: "ArrowUp",
-    canMagicDash: true,
+    canMagicDash: false,
     magicJuice: 50,
     magicJuiceMax: 50,
     dashing: false,
-    hasWallJump: true,
+    hasWallJump: false,
     screenShot: false,
     lastSavePoint: [300, 700],
     lastLevel: "overworld",
@@ -102,6 +113,40 @@ let playerInfo:{[name:string]:any} = {
     useBitmap: true,
     dev: true,
 }
+
+
+const wallJumpIcon = PIXI.Sprite.from('images/wallJumpIcon.png');
+const labCave1Setup = () => {
+    if (!playerInfo.hasWallJump){
+        wallJumpIcon.height = 50;
+        wallJumpIcon.width = 50;
+        wallJumpIcon.x = 350
+        wallJumpIcon.y = 1200
+        engine.stage.addChild(wallJumpIcon)
+    }
+}
+
+let uniqueSetup:{[key:string]:any} = {
+"labCave-1": labCave1Setup
+}
+
+
+// | -------------------------------------------------------- CUSTOM LEVEL BEHAVIOR -----------------------------------------------------|
+const pickupJump = () => {
+        if (!playerInfo.hasWallJump && player.x < 375 && player.y < 1200 && player.x+ player.width> 375 && player.y+player.height > 1200){
+            playerInfo.hasWallJump = true;
+            console.log("got wall jump");
+            wallJumpIcon.visible = false;
+            wallJumpIcon.x = -100
+            wallJumpIcon.y = -100
+            saveCookie();
+        }
+}
+
+let uniqueBehavior:{[key:string]:any} = {
+    "labCave-1": pickupJump
+}
+
 
 let canFly = false;
 let disableFog = false;
@@ -226,21 +271,25 @@ function loadLevel(filename:string) {
     }
     
 
-}
-else if (playerInfo.displayType = "graphic"){
-    staticLevelContainer.addChild(backgroundImage);
-}   
-if (playerInfo.useBitmap) {
-    staticLevelContainer.cacheAsBitmap = true;
-}
-    engine.stage.addChild(player);
-    saveCookie();
+    }
+    else if (playerInfo.displayType = "graphic"){
+        staticLevelContainer.addChild(backgroundImage);
+    }   
+    if (playerInfo.useBitmap) {
+        staticLevelContainer.cacheAsBitmap = true;
+    }
+    if (levelData.worldData.name in uniqueSetup) {
+        uniqueSetup[levelData.worldData.name].call()
+    }
+        engine.stage.addChild(player);
+        saveCookie();
 
 
 }
 
 loadLevel(playerInfo.lastLevel);
 let playerstart:number;
+
 
 function create() {
     /* ***************************** */
@@ -270,6 +319,11 @@ function create() {
 
         }
 
+        if (event.key === "c" && playerInfo.dev && keys.includes("Alt")) {
+            deleteAllCookies();
+            window.location.reload();
+        }
+
         if (event.key === "f") {
             canFly = !canFly;
             saveCookie();
@@ -286,14 +340,19 @@ function create() {
             if (event.repeat) {return}
             console.log("jumped");
             playerInfo.vy = 30;
+        //     setTimeout(function(){
+        //         if (!keys.includes(playerInfo.jumpKey)) {
+        //             playerInfo.vy -= 30;
+        //         }
+        //    }, 150)
             coyoteTime = 0;
             
         }else if (playerInfo.leftWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
-            playerInfo.vx -= 20;
-            playerInfo.vy += 30;
+            playerInfo.vx = -20;
+            playerInfo.vy = 30;
         }else if (playerInfo.rightWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
-            playerInfo.vx += 20;
-            playerInfo.vy += 30;
+            playerInfo.vx = 20;
+            playerInfo.vy = 30;
         }}
 
         if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash) {
@@ -306,7 +365,7 @@ function create() {
                 playerInfo.magicJuice -= 25;
                 setTimeout(function(){
                     playerInfo.dashing = false;
-               }, 800)
+               }, 500)
             }
             if (keys.includes(playerInfo.rightKey) && playerInfo.magicJuice >= 25) {
                 playerInfo.dashing = true;
@@ -543,6 +602,9 @@ if (playerInfo.leftWall) {
             }
     }
 
+    if (levelData.worldData.name in uniqueBehavior) {
+        uniqueBehavior[levelData.worldData.name].call()
+    }
 
     let leftwallfound = false;
     let rightwallfound = false;

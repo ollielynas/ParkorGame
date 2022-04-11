@@ -31,6 +31,7 @@ const config = {
             { from: 'src/index.html' },
             { from: 'src/css/style.css', to: 'css/' },
             { from: 'src/images/logo.png', to: 'images/' },
+            { from: 'src/images/wallJumpIcon.png', to: 'images/' },
             { from: 'src/images/spritesheet-1.json', to: 'images/' },
             { from: 'src/images/overworld-background.png', to: 'images/' },
         ]),
