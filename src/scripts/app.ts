@@ -112,7 +112,26 @@ let playerInfo:{[name:string]:any} = {
     displayType: "hitbox",
     useBitmap: true,
     dev: true,
+    hitLines: false
 }
+
+
+let hitLineLeft = new PIXI.Graphics();
+hitLineLeft.beginFill(0xffffff);
+hitLineLeft.lineStyle(1, 0x1ec732);
+hitLineLeft.drawRect(0,0,1,1);
+let hitLineRight = new PIXI.Graphics();
+hitLineRight.beginFill(0xffffff);
+hitLineRight.lineStyle(1, 0x1ec732);
+hitLineRight.drawRect(0,0,1,1);
+let hitLineTop = new PIXI.Graphics();
+hitLineTop.beginFill(0xffffff);
+hitLineTop.lineStyle(1, 0x1ec732);
+hitLineTop.drawRect(0,0,1,1);
+let hitLineBottom = new PIXI.Graphics();
+hitLineBottom.beginFill(0xffffff);
+hitLineBottom.lineStyle(1, 0x1ec732);
+hitLineBottom.drawRect(0,0,1,1);
 
 
 const wallJumpIcon = PIXI.Sprite.from('images/wallJumpIcon.png');
@@ -192,6 +211,7 @@ function loadLevel(filename:string) {
     engine.stage.removeChildren();
     engine.stage.addChild(staticLevelContainer);
 
+    
 
     console.log('images/'+filename+'-background.png');
     backgroundImage.texture = PIXI.Texture.from('images/'+filename+'-background.png');
@@ -282,6 +302,16 @@ function loadLevel(filename:string) {
         uniqueSetup[levelData.worldData.name].call()
     }
         engine.stage.addChild(player);
+
+    if (playerInfo.hitLines && playerInfo.hitLines) {
+        engine.stage.addChild(hitLineLeft)
+        engine.stage.addChild(hitLineTop)
+        engine.stage.addChild(hitLineRight)
+        engine.stage.addChild(hitLineBottom)
+
+    }
+
+
         saveCookie();
 
 
@@ -290,6 +320,8 @@ function loadLevel(filename:string) {
 loadLevel(playerInfo.lastLevel);
 let playerstart:number;
 
+
+let refreshIntervalId:any
 
 function create() {
     /* ***************************** */
@@ -317,6 +349,35 @@ function create() {
         navigator.clipboard.writeText(screeshot);
         engine.stage.scale = new PIXI.Point((2000/window.innerWidth)*1.5, (2000/window.innerHeight)*1.5);
 
+        }
+
+        if (event.key === "t" && playerInfo.dev) {
+            let inputTime = window.prompt("input game speed, defalt is 60", "60")
+            let inputTimeInt = parseFloat(String(inputTime))
+            if (isNaN(inputTimeInt)|| inputTimeInt < 0.01) inputTimeInt = 60;
+            console.log("game speed:",inputTimeInt)
+            engine.fpsMax = inputTimeInt;
+            console.log(engine.fpsMax);
+            clearInterval(refreshIntervalId)
+            refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
+
+        }
+
+        if (event.key === "b" && playerInfo.dev) {
+            playerInfo.hitLines = !playerInfo.hitLines;
+            if (playerInfo.hitLines) {
+                engine.stage.addChild(hitLineLeft)
+                engine.stage.addChild(hitLineRight)
+                engine.stage.addChild(hitLineTop)
+                engine.stage.addChild(hitLineBottom)
+            }else{
+                engine.stage.removeChild(hitLineLeft)
+                engine.stage.removeChild(hitLineRight)
+                engine.stage.removeChild(hitLineTop)
+                engine.stage.removeChild(hitLineBottom)
+
+            }
+            saveCookie();
         }
 
         if (event.key === "c" && playerInfo.dev && keys.includes("Alt")) {
@@ -454,7 +515,7 @@ function create() {
 
 
 
-    setInterval(update, 1000.0 / engine.fpsMax);
+    refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
     render();
 } // create
 let coyoteTime = 0;
@@ -504,9 +565,7 @@ function update() {
         return
     }
 
-    /* ***************************** */
-    /* Update your Game Objects here */
-    /* ***************************** */
+
 
 
 
@@ -606,6 +665,8 @@ if (playerInfo.leftWall) {
         uniqueBehavior[levelData.worldData.name].call()
     }
 
+
+
     let leftwallfound = false;
     let rightwallfound = false;
     let groundfound = false;
@@ -629,7 +690,7 @@ if (playerInfo.leftWall) {
         if (player.x + player.width > levelData.phyBox[i][0][0]
             && player.y  + player.height*(3/4) > levelData.phyBox[i][0][1]
             && player.x + player.width < levelData.phyBox[i][1][0]
-            && player.y +  player.height/4 < levelData.phyBox[i][1][1]
+            && player.y +  player.height/4   < levelData.phyBox[i][1][1]
             ) {
                 playerInfo.rightWall = true;
                 player.x = levelData.phyBox[i][0][0]+3 - player.width;
@@ -639,7 +700,7 @@ if (playerInfo.leftWall) {
             }else{playerInfo.rightWall = false;}}
             // |---------------------- cheak ground --------------------|
     if (!groundfound && player.y+player.height >= levelData.phyBox[i][0][1] && player.y+player.height <= levelData.phyBox[i][1][1]) { 
-        if (player.x+ (player.width-3) > levelData.phyBox[i][0][0] && player.x +3 < levelData.phyBox[i][1][0]) {
+        if (player.x+ (player.width-3) > levelData.phyBox[i][0][0] && player.x+3 < levelData.phyBox[i][1][0]) {
         if (playerInfo.vy < 0) {
         playerInfo.vy = 0;
         }
@@ -711,7 +772,45 @@ if (playerInfo.leftWall) {
     player.x -= playerInfo.vx;
     player.y -= playerInfo.vy;
 
+    if (playerInfo.hitLines && playerInfo.dev) {
+        hitLineLeft.x = player.x;
+        hitLineLeft.y = player.y +player.height/4;
+        hitLineLeft.height = player.height*(3/5);
+        hitLineLeft.width = 1;
+        hitLineRight.x = player.x+player.width-3;
+        hitLineRight.y = player.y +player.height/4;
+        hitLineRight.height = player.height*(3/5);
+        hitLineRight.width = 1;
+        hitLineTop.x= player.x+13;
+        hitLineTop.width = player.width-6
+        hitLineTop.y = player.y
+        hitLineTop.height = 1
+        hitLineBottom.x= player.x+13;
+        hitLineBottom.width = player.width-6
+        hitLineBottom.y = player.y+player.height
+        hitLineBottom.height = 1
 
+        if (playerInfo.leftWall) {
+            hitLineLeft.tint = (0xffffff);
+        }else {
+            hitLineLeft.tint = (0x000000);
+        }
+        if (playerInfo.rightWall) {
+            hitLineRight.tint = (0xffffff);
+        }else {
+            hitLineRight.tint = (0x000000);
+        }
+        if (playerInfo.roofed) {
+            hitLineTop.tint = (0xffffff);
+        }else {
+            hitLineTop.tint = (0x000000);
+        }
+        if (playerInfo.grounded) {
+            hitLineBottom.tint = (0xffffff);
+        }else {
+            hitLineBottom.tint = (0x000000);
+        }
+    }
 } // update
 
 // let xFrame:number;
