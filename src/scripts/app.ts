@@ -6,6 +6,20 @@ import { FpsMeter } from './fps-meter';
 let fpsMeter: FpsMeter;
 
 const player = PIXI.Sprite.from('images/logo.png');
+
+
+// maby something like this https://m.media-amazon.com/images/I/71GqQB4KbiS._AC_UL320_.jpg
+const spike1 = PIXI.Sprite.from('images/stagAttack.png');
+const spike2 = PIXI.Sprite.from('images/stagAttack.png');
+const spike3 = PIXI.Sprite.from('images/stagAttack.png');
+const spike4 = PIXI.Sprite.from('images/stagAttack.png');
+const spike5 = PIXI.Sprite.from('images/stagAttack.png');
+const spike6 = PIXI.Sprite.from('images/stagAttack.png');
+const spike7 = PIXI.Sprite.from('images/stagAttack.png');
+const spike8 = PIXI.Sprite.from('images/stagAttack.png');
+const spike9 = PIXI.Sprite.from('images/stagAttack.png');
+const spike10 = PIXI.Sprite.from('images/stagAttack.png');
+
 const backgroundImage = PIXI.Sprite.from('images/logo.png');
 // const foreground = PIXI.Sprite.from('images/logo.png');
 
@@ -142,13 +156,72 @@ const labCave1Setup = () => {
         wallJumpIcon.x = 350
         wallJumpIcon.y = 1200
         engine.stage.addChild(wallJumpIcon)
+        
     }
 }
 
-let uniqueSetup:{[key:string]:any} = {
-"labCave-1": labCave1Setup
+const setupSpike = (spike:any) => {
+    spike.width = 50;
+    spike.height = 300;
+    spike.y = randomNumberGeneratorInRange(-400,-1400);
+    spike.x = randomNumberGeneratorInRange(1,15)*100;
+    engine.stage.addChild(spike);
 }
 
+const bossSetup = () => {
+    setupSpike(spike1);
+    setupSpike(spike2);
+    setupSpike(spike3);
+    setupSpike(spike4);
+    setupSpike(spike5);
+    setupSpike(spike6);
+    setupSpike(spike7);
+    setupSpike(spike8);
+    setupSpike(spike9);
+    setupSpike(spike10);
+    playerInfo.lastSavePoint = [10,-100]
+}
+
+let uniqueSetup:{[key:string]:any} = {
+"labCave-1": labCave1Setup,
+"boss-1": bossSetup
+
+}
+
+const moveSpike = (spike:any, num:number) => {
+    spike.y += num/5;
+    if (spike.y > 1000){
+        setupSpike(spike);
+    }
+    levelData.phyBox[num] = [[spike.x, spike.y], [spike.x + 50, spike.y + 270]];
+    levelData.deathBox[num] = [[spike.x+10, spike.y+270], [spike.x + 30, spike.y + 300]];
+    if (spike.y -2 < player.y+player.height && player.y+player.height < spike.y + 2 && spike.x < player.x+player.width-3 && spike.x + 50 > player.x+3 && player.y+player.height < 945) {
+        console.log("hit spike");
+        if (playerInfo.vy < 0) {
+            
+            player.y = spike.y - player.height +1;
+            // playerInfo.vy = -1*num/5
+        }
+    }
+
+}
+
+const bossLoop = () => {
+    moveSpike(spike1, 0);
+    moveSpike(spike2, 1);
+    moveSpike(spike3, 2);
+    moveSpike(spike4, 3);
+    moveSpike(spike5, 4);
+    moveSpike(spike6, 5);
+    moveSpike(spike7, 6);
+    moveSpike(spike8, 7);
+    moveSpike(spike9, 8);
+    moveSpike(spike10, 9);
+}
+
+function randomNumberGeneratorInRange(rangeStart:number, rangeEnd:number) {
+    return Math.floor(Math.random() * (rangeStart - rangeEnd + 1) + rangeEnd);
+ }
 
 // | -------------------------------------------------------- CUSTOM LEVEL BEHAVIOR -----------------------------------------------------|
 const pickupJump = () => {
@@ -162,8 +235,13 @@ const pickupJump = () => {
         }
 }
 
+
+
+
+
 let uniqueBehavior:{[key:string]:any} = {
-    "labCave-1": pickupJump
+    "labCave-1": pickupJump,
+    "boss-1": bossLoop
 }
 
 
@@ -290,11 +368,12 @@ function loadLevel(filename:string) {
         engine.stage.addChild(fogObj)
     }
     
+    
 
     }
     else if (playerInfo.displayType = "graphic"){
         staticLevelContainer.addChild(backgroundImage);
-    }   
+    }
     if (playerInfo.useBitmap) {
         staticLevelContainer.cacheAsBitmap = true;
     }
@@ -309,6 +388,16 @@ function loadLevel(filename:string) {
         engine.stage.addChild(hitLineRight)
         engine.stage.addChild(hitLineBottom)
 
+    }
+    if ("text" in levelData) {
+        for (let i = 0; i < levelData.text.length; i++) {
+            console.log("text found", levelData.text)
+            let textObj = new PIXI.Text(levelData.text[i][2], {fontFamily: 'Arial', fontSize: 18, fill: 0x000000, align: 'center'})
+            textObj.x = levelData.text[i][0] -textObj.width/2
+            textObj.y = levelData.text[i][1] -textObj.height/2
+            textObj.name = "\"propmt\","+String(levelData.text[i][0] -textObj.width/2)+","+String(levelData.text[i][1] -textObj.height/2);
+            engine.stage.addChild(textObj)
+        }
     }
 
 
@@ -363,6 +452,15 @@ function create() {
 
         }
 
+        if (event.key === "y" && playerInfo.dev) {
+            player.x = 1000
+            player.y = 1000
+            playerInfo.lastSavePoint = [1000,1000];
+            loadLevel("debug");
+
+
+        }
+
         if (event.key === "b" && playerInfo.dev) {
             playerInfo.hitLines = !playerInfo.hitLines;
             if (playerInfo.hitLines) {
@@ -408,13 +506,15 @@ function create() {
         //    }, 150)
             coyoteTime = 0;
             
-        }else if (playerInfo.leftWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
-            playerInfo.vx = -20;
-            playerInfo.vy = 30;
-        }else if (playerInfo.rightWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
-            playerInfo.vx = 20;
-            playerInfo.vy = 30;
-        }}
+        }
+        // else if (playerInfo.leftWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
+        //     playerInfo.vx = -20;
+        //     playerInfo.vy = 30;
+        // }else if (playerInfo.rightWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
+        //     playerInfo.vx = 20;
+        //     playerInfo.vy = 30;
+        // }
+    }
 
         if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash) {
             if (keys.includes(playerInfo.leftKey) && playerInfo.magicJuice >= 25) {
@@ -521,6 +621,21 @@ function create() {
 let coyoteTime = 0;
 let camHeight:number = (2000/window.innerHeight)*-1.5; // 
 let camWidth:number = (2000/window.innerWidth)*-1.5;
+
+
+let textAreas = [
+
+]
+
+for (let j = 0; j < engine.stage.children.length; j++) {
+    if ( engine.stage.children[j].name != null) {
+    console.log("[" +engine.stage.children[j].name + "]")
+    const name:string[] = JSON.parse("[" +engine.stage.children[j].name + "]");
+    if (name[0] === "prompt") {
+        textAreas.push([name[1], name[2]]);
+    }}
+}
+
 function update() {
     fpsMeter.updateTime();
 
@@ -675,27 +790,39 @@ if (playerInfo.leftWall) {
     for (var i = 0; i < levelData.phyBox.length; i++) {
         if (!leftwallfound){
         if ( player.x >= levelData.phyBox[i][0][0]
-            && player.y  + player.height*(3/4) > levelData.phyBox[i][0][1]
+            && player.y  + player.height*(3/4) + playerInfo.vy/2 > levelData.phyBox[i][0][1]
             && player.x  <= levelData.phyBox[i][1][0]
-            && player.y +  player.height/4 < levelData.phyBox[i][1][1]
+            && player.y +  player.height/4 + playerInfo.vy/2 < levelData.phyBox[i][1][1]
             ) {
                 playerInfo.leftWall = true;
                 leftwallfound = true;
                 player.x = levelData.phyBox[i][1][0];
                 if (playerInfo.vx > 0) {playerInfo.vx = 0;}
+
+                if (jumpBuffer > 0 && playerInfo.hasWallJump) {
+                    jumpBuffer = 0;
+                    playerInfo.vx = -20;
+                    playerInfo.vy = 30;
+                }
                 
             }else{playerInfo.leftWall = false;}}
             // |---------------------- cheak right wall --------------------|
         if (!rightwallfound){
         if (player.x + player.width > levelData.phyBox[i][0][0]
-            && player.y  + player.height*(3/4) > levelData.phyBox[i][0][1]
+            && player.y  + player.height*(3/4) + playerInfo.vy/2 > levelData.phyBox[i][0][1]
             && player.x + player.width < levelData.phyBox[i][1][0]
-            && player.y +  player.height/4   < levelData.phyBox[i][1][1]
+            && player.y +  player.height/4 + playerInfo.vy/2   < levelData.phyBox[i][1][1]
             ) {
                 playerInfo.rightWall = true;
                 player.x = levelData.phyBox[i][0][0]+3 - player.width;
                 if (playerInfo.vx < 0) {playerInfo.vx = 0;}
                 rightwallfound = true;
+
+                if (jumpBuffer > 0 && playerInfo.hasWallJump) {
+                    jumpBuffer = 0;
+                    playerInfo.vx = 20;
+                    playerInfo.vy = 30;
+                }
                 
             }else{playerInfo.rightWall = false;}}
             // |---------------------- cheak ground --------------------|
@@ -710,7 +837,7 @@ if (playerInfo.leftWall) {
         playerInfo.grounded = true;
         if (jumpBuffer > 0) {playerInfo.vy = 30; jumpBuffer = 0};
         if (playerInfo.vy < 25) {
-        coyoteTime = 30;
+        coyoteTime = 20;
         }
         if (playerInfo.vy == 0 && playerInfo.magicJuice < playerInfo.magicJuiceMax ) {
             playerInfo.magicJuice += 0.25;
@@ -774,11 +901,11 @@ if (playerInfo.leftWall) {
 
     if (playerInfo.hitLines && playerInfo.dev) {
         hitLineLeft.x = player.x;
-        hitLineLeft.y = player.y +player.height/4;
+        hitLineLeft.y = player.y +player.height/4 + playerInfo.vy/2;
         hitLineLeft.height = player.height*(3/5);
         hitLineLeft.width = 1;
         hitLineRight.x = player.x+player.width-3;
-        hitLineRight.y = player.y +player.height/4;
+        hitLineRight.y = player.y +player.height/4 + playerInfo.vy/2;
         hitLineRight.height = player.height*(3/5);
         hitLineRight.width = 1;
         hitLineTop.x= player.x+13;

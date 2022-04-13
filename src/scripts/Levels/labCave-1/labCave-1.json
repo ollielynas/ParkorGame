@@ -61,7 +61,7 @@
             "spawnY" : 1700,
             "bounding" : [[1700, -100],[2000, 50]],
             "destination" : "cave-1"
-            }
+        }
 ],
     "respawnPoint" : [
         [1750, 250]
