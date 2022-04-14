@@ -9,7 +9,7 @@ const player = PIXI.Sprite.from('images/logo.png');
 
 
 // maby something like this https://m.media-amazon.com/images/I/71GqQB4KbiS._AC_UL320_.jpg
-const spike1 = PIXI.Sprite.from('images/stagAttack.png');
+const spike1 = PIXI.Sprite.from('.images/stagAttack.png');
 const spike2 = PIXI.Sprite.from('images/stagAttack.png');
 const spike3 = PIXI.Sprite.from('images/stagAttack.png');
 const spike4 = PIXI.Sprite.from('images/stagAttack.png');
@@ -189,14 +189,14 @@ let uniqueSetup:{[key:string]:any} = {
 }
 
 const moveSpike = (spike:any, num:number) => {
-    spike.y += num/5;
+    spike.y += num/3;
     if (spike.y > 1000){
         setupSpike(spike);
     }
     levelData.phyBox[num] = [[spike.x, spike.y], [spike.x + 50, spike.y + 270]];
     levelData.deathBox[num] = [[spike.x+10, spike.y+270], [spike.x + 30, spike.y + 300]];
+
     if (spike.y -2 < player.y+player.height && player.y+player.height < spike.y + 2 && spike.x < player.x+player.width-3 && spike.x + 50 > player.x+3 && player.y+player.height < 945) {
-        console.log("hit spike");
         if (playerInfo.vy < 0) {
             
             player.y = spike.y - player.height +1;
@@ -289,7 +289,7 @@ function loadLevel(filename:string) {
     engine.stage.removeChildren();
     engine.stage.addChild(staticLevelContainer);
 
-    
+
 
     console.log('images/'+filename+'-background.png');
     backgroundImage.texture = PIXI.Texture.from('images/'+filename+'-background.png');

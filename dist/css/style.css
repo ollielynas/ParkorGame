@@ -1,0 +1,63 @@
+
+:root {
+	--manaValue: 12.5em;
+	--manaMax: 12.5em;
+}
+
+body {
+	background-color: #ffffff;
+	font-family: "Century Gothic", helvetica, arial, sans-serif;
+	font-size: 1.4em;
+	line-height: 1.5;
+	width: 100vw;
+	height: 100vh;
+	margin: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: white;
+	font-size: min(1vw, 1.778vh);
+	overflow: hidden;
+}
+
+.fps {
+	position: fixed;
+	left: 0px;
+	bottom: 0px;
+	color: #0000ff;
+	z-index: 111;
+	font-family: monospace;
+}
+
+CANVAS{
+	position: absolute;
+	top: 0;
+	left: 0;
+	border: 1px solid #000000;
+	width: 100vw;
+	height:100vh;
+	background-color: lightblue;
+	padding: 0;
+	margin: 0;
+}
+
+#magicJuiceBarWrapper {
+	z-index: 100;
+	width: var(--manaMax);
+	height: 2em;
+	position: absolute;
+	top: 2em;
+	left: 2em;
+	background-color: #383838;
+}
+
+#magicJuiceBar {
+	z-index: 110;
+	width: var(--manaValue);
+	height: 2em;
+	position: absolute;
+	top: 2em;
+	left: 2em;
+	background-color: #415fb3;
+}
+
