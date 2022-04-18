@@ -2,6 +2,7 @@
 :root {
 	--manaValue: 12.5em;
 	--manaMax: 12.5em;
+	--toolBarTop: 120vh;
 }
 
 body {
@@ -61,3 +62,22 @@ CANVAS{
 	background-color: #415fb3;
 }
 
+#replayTools {
+	position: absolute;
+	display: flex;
+	width: 80vw;
+	left: 10vw;
+	height: 60vh;
+	top: var(--toolBarTop);
+	border: 1px solid #000000;
+	background-color: #ffffffd8
+}
+
+#frameSlider {
+	width: 80%;
+	margin-left: 10vw; 
+}
+
+#replayTools:hover {
+    --toolBarTop: 40vh;
+}

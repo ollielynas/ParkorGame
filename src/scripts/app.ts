@@ -5,7 +5,32 @@ import { FpsMeter } from './fps-meter';
 
 let fpsMeter: FpsMeter;
 
-const player = PIXI.Sprite.from('images/logo.png');
+let playerAnimation = {
+    "idle": [
+            PIXI.Texture.from('images/idle_01.png')
+        ],
+    "run": [
+            PIXI.Texture.from('images/run_01.png'), 
+            PIXI.Texture.from('images/run_02.png')
+        ],
+    "wallSlide" : [
+        PIXI.Texture.from('images/wallSlide_01.png'), 
+        PIXI.Texture.from('images/wallSlide_02.png'), 
+        PIXI.Texture.from('images/wallSlide_03.png'), 
+    ], 
+    "broken": [
+        PIXI.Texture.from('images/brokenTexture.png'), 
+    ],
+    "dash": [
+        PIXI.Texture.from('images/dash_01.png'), 
+        PIXI.Texture.from('images/dash_02.png'), 
+        PIXI.Texture.from('images/dash_03.png'), 
+        PIXI.Texture.from('images/dash_04.png'), 
+        PIXI.Texture.from('images/dash_05.png'), 
+
+    ]
+}
+const player = PIXI.Sprite.from('images/idle_01.png');
 
 
 // maby something like this https://m.media-amazon.com/images/I/71GqQB4KbiS._AC_UL320_.jpg
@@ -20,8 +45,8 @@ const spike8 = PIXI.Sprite.from('images/stagAttack.png');
 const spike9 = PIXI.Sprite.from('images/stagAttack.png');
 const spike10 = PIXI.Sprite.from('images/stagAttack.png');
 
-const backgroundImage = PIXI.Sprite.from('images/logo.png');
-// const foreground = PIXI.Sprite.from('images/logo.png');
+const backgroundImage = PIXI.Sprite.from('images/idle_01.png')
+// const foreground = PIXI.Sprite.from('images/idle_01.png');
 
 
 interface EngineParams {
@@ -39,7 +64,7 @@ class Engine {
     public graphics: PIXI.Graphics;
     public fpsMax: number;
 
-    
+
 
     constructor(params: EngineParams) {
         this.loader = PIXI.Loader.shared;
@@ -110,15 +135,9 @@ let playerInfo:{[name:string]:any} = {
     upKey: "w",
     downKey: "s",
     jumpKey: " ",
-    // leftKey: "ArrowLeft",
-    // rightKey: "ArrowRight",
-    // upKey: "ArrowUp",
-    // downKey: "ArrowDown",
-    // jumpKey: "ArrowUp",
     canMagicDash: false,
     magicJuice: 50,
     magicJuiceMax: 50,
-    dashing: false,
     hasWallJump: false,
     screenShot: false,
     lastSavePoint: [300, 700],
@@ -126,26 +145,28 @@ let playerInfo:{[name:string]:any} = {
     displayType: "hitbox",
     useBitmap: true,
     dev: true,
-    hitLines: false
+    hitLines: false,
+    replay: false,
+    replayLength: 60
 }
 
 
 let hitLineLeft = new PIXI.Graphics();
-hitLineLeft.beginFill(0xffffff);
+// hitLineLeft.beginFill(0xffffff);
 hitLineLeft.lineStyle(1, 0x1ec732);
 hitLineLeft.drawRect(0,0,1,1);
 let hitLineRight = new PIXI.Graphics();
 hitLineRight.beginFill(0xffffff);
 hitLineRight.lineStyle(1, 0x1ec732);
-hitLineRight.drawRect(0,0,1,1);
+hitLineRight.drawRect(0,0,2,2);
 let hitLineTop = new PIXI.Graphics();
-hitLineTop.beginFill(0xffffff);
+//hitLineTop.beginFill();
 hitLineTop.lineStyle(1, 0x1ec732);
 hitLineTop.drawRect(0,0,1,1);
 let hitLineBottom = new PIXI.Graphics();
-hitLineBottom.beginFill(0xffffff);
+// hitLineBottom.beginFill(0xffffff);
 hitLineBottom.lineStyle(1, 0x1ec732);
-hitLineBottom.drawRect(0,0,1,1);
+hitLineBottom.drawRect(0,0, 1, 1);
 
 
 const wallJumpIcon = PIXI.Sprite.from('images/wallJumpIcon.png');
@@ -206,6 +227,9 @@ const moveSpike = (spike:any, num:number) => {
 
 }
 
+
+
+
 const bossLoop = () => {
     moveSpike(spike1, 0);
     moveSpike(spike2, 1);
@@ -221,6 +245,20 @@ const bossLoop = () => {
 
 function randomNumberGeneratorInRange(rangeStart:number, rangeEnd:number) {
     return Math.floor(Math.random() * (rangeStart - rangeEnd + 1) + rangeEnd);
+ }
+
+
+let sliderToFrame = (slider:number) => {
+    playRecordedFrame(slider/100 * replayLoop.length)
+}
+
+
+function playRecordedFrame(frame:number) {
+        frame = Math.round(frame)
+        if (frame <= replayLoop.length) {
+        console.log(replayLoop[frame][0]["replay-playerCoords"])
+        console.log(replayLoop[frame])
+        }
  }
 
 // | -------------------------------------------------------- CUSTOM LEVEL BEHAVIOR -----------------------------------------------------|
@@ -245,8 +283,7 @@ let uniqueBehavior:{[key:string]:any} = {
 }
 
 
-let canFly = false;
-let disableFog = false;
+
 
 for (let i = 0; i < Object.keys(playerInfo).length; i++) {
 
@@ -268,11 +305,38 @@ function load() {
     create();
 } // load
 
-let keys:string[] = [""]
 
+// ------------------------------------------------------- Non Cookie Data ---------------------------------------------|
+let keys:string[] = [""]
 let levelData:any;
 let staticLevelContainer = new PIXI.Container()
 let jumpBuffer = 0;
+let canFly = false;
+let disableFog = false;
+let displayingReplay:boolean = false;
+let dashing:string = "none"
+
+function downloadObjectAsJson(exportObj:any, exportName:string){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, "\t"));
+    var downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", exportName + ".json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+
+let replayLoop:any = [
+    {
+        "replay-PayerInfo": playerInfo,
+        "replay-playerCoords": [player.x,player.y],
+        "replay-jumpBuffer": jumpBuffer,
+        "replay-canFly": canFly,
+    }
+]
+
+//downloadObjectAsJson(replayLoop, "replayLoop")
 
 
 backgroundImage.x  = 0;
@@ -412,6 +476,12 @@ let playerstart:number;
 
 let refreshIntervalId:any
 
+
+function hashCode(str:string) {
+    return str.split('').reduce((prevHash, currVal) =>
+      (((prevHash << 5) - prevHash) + currVal.charCodeAt(0))|0, 0);
+  }
+
 function create() {
     /* ***************************** */
     /* Create your Game Objects here */
@@ -440,10 +510,12 @@ function create() {
 
         }
 
-        if (event.key === "t" && playerInfo.dev) {
+
+        if (playerInfo.dev) {  // |---------------------  Dev mode hotkeys -------------------------|
+        if (event.key === "t") {
             let inputTime = window.prompt("input game speed, defalt is 60", "60")
             let inputTimeInt = parseFloat(String(inputTime))
-            if (isNaN(inputTimeInt)|| inputTimeInt < 0.01) inputTimeInt = 60;
+            if (isNaN(inputTimeInt)|| inputTimeInt < 0.0000000001) inputTimeInt = 60;
             console.log("game speed:",inputTimeInt)
             engine.fpsMax = inputTimeInt;
             console.log(engine.fpsMax);
@@ -451,8 +523,41 @@ function create() {
             refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
 
         }
+        // |-----------------------------------------------------------DISPLAY REPLAY FILE -----------------------------------|
+        if (event.key === "r - disabled for now") {// a replay file will allow you to record a section of gameplay in a revolveing buffer
+        if (keys.includes("Alt")) {
+            displayingReplay = !displayingReplay
+            if (displayingReplay) {
+            this.clearInterval(refreshIntervalId)
+            document.documentElement.style.setProperty("--toolBarTop", 90+"vh");
+            sliderToFrame(0)
 
-        if (event.key === "y" && playerInfo.dev) {
+            }else {
+                refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
+                document.documentElement.style.setProperty("--toolBarTop", 120+"vh");
+            }
+
+            return
+        }
+
+            console.log("replay:", playerInfo.replay)
+            if (playerInfo.replay) {
+                if (this.window.confirm("replay ended\rpress Alt R to view recording\ndownlaod replay?")) {
+                    console.log("replay downloading...")
+                    downloadObjectAsJson(replayLoop, "replayFile|"+hashCode(JSON.stringify(replayLoop)));
+                }
+            }
+            if (!playerInfo.replay && replayLoop.length > playerInfo.replayLength) {
+                playerInfo.replayLength = this.window.prompt("Starting Replay\nset replay length", playerInfo.replayLength)
+                if (playerInfo.replayLength == null) {
+                    playerInfo.replayLength = 60;
+                    playerInfo.replay = true
+                }
+            }
+            playerInfo.replay = !playerInfo.replay;
+        }
+
+        if (event.key === "y") {
             player.x = 1000
             player.y = 1000
             playerInfo.lastSavePoint = [1000,1000];
@@ -461,9 +566,11 @@ function create() {
 
         }
 
-        if (event.key === "b" && playerInfo.dev) {
+        if (event.key === "b" ) {
             playerInfo.hitLines = !playerInfo.hitLines;
             if (playerInfo.hitLines) {
+                hitLineBottom.lineStyle(1, 0x1ec732);
+                hitLineBottom.drawRect(0,0, 10, 10);
                 engine.stage.addChild(hitLineLeft)
                 engine.stage.addChild(hitLineRight)
                 engine.stage.addChild(hitLineTop)
@@ -478,7 +585,7 @@ function create() {
             saveCookie();
         }
 
-        if (event.key === "c" && playerInfo.dev && keys.includes("Alt")) {
+        if (event.key === "c" && keys.includes("Alt")) {
             deleteAllCookies();
             window.location.reload();
         }
@@ -492,6 +599,7 @@ function create() {
             disableFog = !disableFog;
             saveCookie();
         }
+    }
 
         if (event.key === playerInfo.jumpKey) {
             jumpBuffer = 10;
@@ -516,34 +624,49 @@ function create() {
         // }
     }
 
-        if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash) {
-            if (keys.includes(playerInfo.leftKey) && playerInfo.magicJuice >= 25) {
-                playerInfo.dashing = true;
-                playerstart = player.x;
-                playerInfo.vx += 50;
-                playerInfo.vy = 0;
-                playerInfo.terminalVelocity = 0;
-                playerInfo.magicJuice -= 25;
-                setTimeout(function(){
-                    playerInfo.dashing = false;
-               }, 500)
-            }
-            if (keys.includes(playerInfo.rightKey) && playerInfo.magicJuice >= 25) {
-                playerInfo.dashing = true;
-                playerstart = player.x;
-                playerInfo.vx -= 50;
-                playerInfo.vy = 0;
-                playerInfo.magicJuice -= 25;
-                playerInfo.terminalVelocity = 0;
-                setTimeout(function(){
-                    playerInfo.dashing = false;
-               }, 800)
-            }
+        if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash && dashing == "none") {
+
             if (keys.includes(playerInfo.upKey) && playerInfo.magicJuice >= 25) {
                 playerstart = player.x;
-                playerInfo.vy = 40;
+                dashing = "up";
                 playerInfo.vx = 0;
+
+                if (keys.includes(playerInfo.leftKey)){
+                    dashing = "leftUp";
+                    playerInfo.vx = 30;
+                }
+                if (keys.includes(playerInfo.rightKey)){
+                    dashing = "rightUp";    
+                    playerInfo.vx = -30;
+                }
+                setTimeout(function(){
+                    dashing = "none";
+               }, 200)
+                playerInfo.vy = 40;
                 playerInfo.magicJuice -= 25;
+            }
+
+            else if (keys.includes(playerInfo.leftKey) && playerInfo.magicJuice >= 25) {
+                dashing = "left";
+                playerstart = player.x;
+                playerInfo.vx = 50;
+                playerInfo.vy = 0;
+                playerInfo.terminalVelocity = 0;
+                playerInfo.magicJuice -= 25;
+                setTimeout(function(){
+                    dashing = "none";
+               }, 500)
+            }
+            else if (keys.includes(playerInfo.rightKey) && playerInfo.magicJuice >= 25) {
+                dashing = "right";
+                playerstart = player.x;
+                playerInfo.vx = -50;
+                playerInfo.vy = 0;
+                playerInfo.magicJuice -= 25;
+                playerInfo.terminalVelocity = 0;
+                setTimeout(function(){
+                    dashing = "none";
+               }, 500)
             }
             document.documentElement.style.setProperty("--manaValue", (playerInfo.magicJuice/4)+"em");
         }
@@ -614,7 +737,6 @@ function create() {
     groundedText.style.left = '5px';
 
 
-
     refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
     render();
 } // create
@@ -622,6 +744,48 @@ let coyoteTime = 0;
 let camHeight:number = (2000/window.innerHeight)*-1.5; // 
 let camWidth:number = (2000/window.innerWidth)*-1.5;
 
+
+// |)|----------------------------------------------------------------- ANIMATION LOOP ------------------------------------------------|(|
+let animationLoopNum:number = 1;
+setInterval(async () => {
+    animationLoopNum += 1
+    if (animationLoopNum >= 10) {animationLoopNum =1}
+
+    let texture = playerAnimation.idle[Math.floor(animationLoopNum/10 * playerAnimation.idle.length)]
+    let rotation = 0 // 12 to flip
+
+    if (playerInfo.grounded) {
+        if (playerInfo.vx < 0) {
+            texture = playerAnimation.run[Math.floor(animationLoopNum/10 * playerAnimation.run.length)]
+            rotation = 0;
+        }else if (playerInfo.vx > 0) {
+            texture = playerAnimation.run[Math.floor(animationLoopNum/10 * playerAnimation.run.length)]
+            rotation = 12;
+        }
+    }
+
+
+
+
+
+    if (playerInfo.hasWallJump && playerInfo.vy < 0) {
+    if (playerInfo.leftWall && keys.includes(playerInfo.leftKey)) {
+        texture = playerAnimation.wallSlide[Math.floor(animationLoopNum/10 * playerAnimation.wallSlide.length)]
+        rotation = 0
+    }
+    if (playerInfo.rightWall && keys.includes(playerInfo.rightKey)) {
+        texture = playerAnimation.wallSlide[Math.floor(animationLoopNum/10 * playerAnimation.wallSlide.length)]
+        rotation = 12
+    }
+
+    //if (dashing)
+}
+
+
+    player.texture = texture;
+    player.texture.rotate  = rotation;
+
+}, 50);
 
 let textAreas = [
 
@@ -688,15 +852,15 @@ function update() {
     if (keys.includes(playerInfo.downKey)) {
         playerInfo.terminalVelocity = -100;
         playerInfo.vx = 0;
-    }else if (!playerInfo.dashing){
+    }else if (!dashing){
         playerInfo.terminalVelocity = -20;
     }
 
 
 
     const diff:number = playerstart - player.x
-    if (playerInfo.dashing && (diff > 300 || diff < -300 || playerInfo.leftWall || playerInfo.rightWall)) {
-        playerInfo.dashing = false;
+    if (dashing && (playerInfo.vy*playerInfo.vy +playerInfo.vx*playerInfo.vx < 10 || diff > 300 || diff < -300 || playerInfo.leftWall || playerInfo.rightWall)) {
+        dashing = "none";
         playerInfo.terminalVelocity = -20;
     }
 
@@ -898,6 +1062,20 @@ if (playerInfo.leftWall) {
 
     player.x -= playerInfo.vx;
     player.y -= playerInfo.vy;
+
+    if (playerInfo.dev && playerInfo.replay) {
+        if (playerInfo.replayLength < replayLoop.length) {
+            replayLoop.shift();
+        }
+        replayLoop.push([
+            {
+                "replay-PayerInfo": playerInfo,
+                "replay-playerCoords": [player.x,player.y],
+                "replay-jumpBuffer": jumpBuffer,
+                "replay-canFly": canFly,
+            }
+        ])
+    }
 
     if (playerInfo.hitLines && playerInfo.dev) {
         hitLineLeft.x = player.x;
