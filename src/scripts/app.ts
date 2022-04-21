@@ -1,9 +1,6 @@
 import * as PIXI from 'pixi.js'
-import { FpsMeter } from './fps-meter';
-//const fs = require('fs');
 
 
-let fpsMeter: FpsMeter;
 
 let playerAnimation = {
     "idle": [
@@ -19,7 +16,12 @@ let playerAnimation = {
         PIXI.Texture.from('images/wallSlide_03.png'), 
     ], 
     "broken": [
-        PIXI.Texture.from('images/brokenTexture.png'), 
+        PIXI.Texture.from('images/brokenTexture_01.png'), 
+        PIXI.Texture.from('images/brokenTexture_02.png'), 
+        PIXI.Texture.from('images/brokenTexture_03.png'), 
+        PIXI.Texture.from('images/brokenTexture_04.png'), 
+        PIXI.Texture.from('images/brokenTexture_05.png'), 
+
     ],
     "dash": [
         PIXI.Texture.from('images/dash_01.png'), 
@@ -27,9 +29,22 @@ let playerAnimation = {
         PIXI.Texture.from('images/dash_03.png'), 
         PIXI.Texture.from('images/dash_04.png'), 
         PIXI.Texture.from('images/dash_05.png'), 
-
+    ],
+    "fall": [
+        PIXI.Texture.from('images/fall_01.png'),
+    ],
+    "jump": [
+        PIXI.Texture.from('images/jump_01.png'),
+    ],
+    "death": [
+        PIXI.Texture.from('images/death_01.png'),
+        PIXI.Texture.from('images/death_02.png'),
+        PIXI.Texture.from('images/death_03.png'),
+        PIXI.Texture.from('images/death_04.png'),
+        PIXI.Texture.from('images/death_05.png'),
     ]
 }
+
 const player = PIXI.Sprite.from('images/idle_01.png');
 
 
@@ -315,6 +330,7 @@ let canFly = false;
 let disableFog = false;
 let displayingReplay:boolean = false;
 let dashing:string = "none"
+let deathAnim:boolean = false;
 
 function downloadObjectAsJson(exportObj:any, exportName:string){
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, "\t"));
@@ -488,7 +504,6 @@ function create() {
     /* ***************************** */
 
     window.addEventListener("keydown", async function (event) {
-        groundedText.innerHTML = 'Grounded: ' + playerInfo.grounded.toString() + " Leftwall: " + playerInfo.leftWall.toString();
         event.key.toLocaleLowerCase();
         if (event.defaultPrevented) {
           return; // Do nothing if the event was already processed
@@ -607,21 +622,9 @@ function create() {
             if (event.repeat) {return}
             console.log("jumped");
             playerInfo.vy = 30;
-        //     setTimeout(function(){
-        //         if (!keys.includes(playerInfo.jumpKey)) {
-        //             playerInfo.vy -= 30;
-        //         }
-        //    }, 150)
             coyoteTime = 0;
             
         }
-        // else if (playerInfo.leftWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
-        //     playerInfo.vx = -20;
-        //     playerInfo.vy = 30;
-        // }else if (playerInfo.rightWall && playerInfo.hasWallJump && event.key === playerInfo.jumpKey) {
-        //     playerInfo.vx = 20;
-        //     playerInfo.vy = 30;
-        // }
     }
 
         if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash && dashing == "none") {
@@ -630,6 +633,8 @@ function create() {
                 playerstart = player.x;
                 dashing = "up";
                 playerInfo.vx = 0;
+                player.y -= 10
+                // this stops the sides of the charcter collideing with the floor
 
                 if (keys.includes(playerInfo.leftKey)){
                     dashing = "leftUp";
@@ -675,7 +680,6 @@ function create() {
       }, true);
 
       window.addEventListener("keyup", async function (event) {
-        keysText.innerHTML = 'Keys: ' + keys.join(" ").toString();
         if (event.defaultPrevented) {
           return; // Do nothing if the event was already processed
         }
@@ -695,46 +699,6 @@ function create() {
     engine.stage.addChild(player);
 
 
-    /* FPS */
-    const fpsMeterItem = document.createElement('div');
-    fpsMeterItem.classList.add('fps');
-    engine.container.appendChild(fpsMeterItem);
-    fpsMeterItem.style.position = 'absolute';
-    fpsMeterItem.style.top = '0px';
-    fpsMeterItem.style.left = '5px';
-
-    fpsMeter = new FpsMeter(() => {
-        fpsMeterItem.innerHTML = 'FPS: ' + fpsMeter.getFrameRate().toFixed(2).toString();
-        keysText.innerHTML = 'Keys: ' + keys.join(" "),toString().replace(" ","Spacebar");
-        groundedText.innerHTML = 'Grounded: ' + playerInfo.grounded.toString() + " Leftwall: " + playerInfo.leftWall.toString();
-        playerCoordsItem.innerHTML = 'x: ' + player.x.toFixed(2).toString() + ' y: ' + player.y.toFixed(2).toString() + " xv: " + playerInfo.vx.toFixed(2).toString() + " yv: " + playerInfo.vy.toFixed(2).toString();
-    });
-
-    const playerCoordsItem = document.createElement('div');
-    playerCoordsItem.classList.add('fps');
-    engine.container.appendChild(playerCoordsItem);
-
-
-    playerCoordsItem.innerHTML = 'x: ' + player.x.toFixed(2).toString() + ' y: ' + player.y.toFixed(2).toString() + " xv: " + playerInfo.vx.toFixed(2).toString() + " yv: " + playerInfo.vy.toFixed(2).toString();
-    playerCoordsItem.style.position = 'absolute';
-    playerCoordsItem.style.top = '20px';
-    playerCoordsItem.style.left = '5px';
-
-    const keysText = document.createElement('div');
-    keysText.classList.add('fps');
-    engine.container.appendChild(keysText);
-    keysText.innerHTML = 'Keys: ' + keys.toString();
-    keysText.style.position = 'absolute';
-    keysText.style.top = '40px';
-    keysText.style.left = '5px';
-
-    const groundedText = document.createElement('div');
-    groundedText.classList.add('fps');
-    engine.container.appendChild(groundedText);
-    groundedText.innerHTML = 'Grounded: ' + playerInfo.grounded.toString();
-    groundedText.style.position = 'absolute';
-    groundedText.style.top = '60px';
-    groundedText.style.left = '5px';
 
 
     refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
@@ -744,6 +708,7 @@ let coyoteTime = 0;
 let camHeight:number = (2000/window.innerHeight)*-1.5; // 
 let camWidth:number = (2000/window.innerWidth)*-1.5;
 
+    let rotation = 0 // 12 to flip
 
 // |)|----------------------------------------------------------------- ANIMATION LOOP ------------------------------------------------|(|
 let animationLoopNum:number = 1;
@@ -752,8 +717,15 @@ setInterval(async () => {
     if (animationLoopNum >= 10) {animationLoopNum =1}
 
     let texture = playerAnimation.idle[Math.floor(animationLoopNum/10 * playerAnimation.idle.length)]
-    let rotation = 0 // 12 to flip
 
+    if (playerInfo.vy < 0) {texture = playerAnimation.fall[Math.floor(animationLoopNum/10 * playerAnimation.fall.length)]}
+
+    else if (playerInfo.vy > 0) {texture = playerAnimation.jump[Math.floor(animationLoopNum/10 * playerAnimation.jump.length)]}
+
+
+    if (rotation != 12 && rotation != 0) {
+        rotation = 0
+    }
     if (playerInfo.grounded) {
         if (playerInfo.vx < 0) {
             texture = playerAnimation.run[Math.floor(animationLoopNum/10 * playerAnimation.run.length)]
@@ -764,10 +736,6 @@ setInterval(async () => {
         }
     }
 
-
-
-
-
     if (playerInfo.hasWallJump && playerInfo.vy < 0) {
     if (playerInfo.leftWall && keys.includes(playerInfo.leftKey)) {
         texture = playerAnimation.wallSlide[Math.floor(animationLoopNum/10 * playerAnimation.wallSlide.length)]
@@ -777,13 +745,37 @@ setInterval(async () => {
         texture = playerAnimation.wallSlide[Math.floor(animationLoopNum/10 * playerAnimation.wallSlide.length)]
         rotation = 12
     }
-
-    //if (dashing)
 }
+    player.height = 68;
+    player.width = 51;
 
+  if (dashing != "none") {
+        console.log("dashing animation" + dashing)
+        texture = playerAnimation.dash[Math.floor(animationLoopNum/10 * playerAnimation.dash.length)]
+        if (dashing == "left") {
+            rotation = 2
+            player.height = 51;
+            player.width = 68;
+        }
+        else if (dashing == "right") {
+            rotation = 6
+            player.height = 51;
+            player.width = 68;
+        }else if (dashing == "rightUp") {
+            rotation = 7
+        }else if (dashing == "leftUp") {
+            rotation = 1
+        }
+    }
 
+    if (deathAnim) {
+        texture = texture = playerAnimation.death[Math.floor(animationLoopNum/10 * playerAnimation.death.length)]
+    }
+
+    //texture = playerAnimation.broken[Math.floor(animationLoopNum/10 * playerAnimation.broken.length)]
     player.texture = texture;
     player.texture.rotate  = rotation;
+    // node_modules\pixi.js\pixi.js.d.ts line #12519
 
 }, 50);
 
@@ -800,8 +792,75 @@ for (let j = 0; j < engine.stage.children.length; j++) {
     }}
 }
 
+function deathSleep () {
+    console.log("slept")
+    deathAnim = false;
+    player.x = playerInfo.lastSavePoint[0];
+    player.y = playerInfo.lastSavePoint[1];
+    playerInfo.vx = 0;
+    playerInfo.vy = 0;
+    keys = [];
+}
+
+let dataContainer = document.getElementById("data")!;
+let devSettingsContainer = document.getElementById("devToolInfo")!;
+
+function keyReplace(key:string) {
+    
+    let keyfound = false;
+    for (let i = 0; i < keys.length; i++) {
+        if (keys[i].includes(key)) {
+            key = "<kbd style=\"color:black; font-weight: bold;filter: brightness(0.8);\">" + key + "</kbd>"
+            keyfound = true;
+        } 
+    }
+
+    if (!keyfound) {
+    key = "<kbd style=\"color:#333\">" + key + "</kbd>"
+    }
+    key = key.replace(/> </g, ">&#9251;<")
+    return key
+}
+let repeatStr = (n:number, s:string) => s.repeat(n);
+
 function update() {
-    fpsMeter.updateTime();
+    //fpsMeter.updateTime();
+
+    if (playerInfo.dev && typeof(dataContainer) == "object" && typeof(devSettingsContainer) == "object") {
+        dataContainer.innerHTML = JSON.stringify(playerInfo, null, 2)
+        .replace(/\n/g, "<br>")
+        .replace(/{|}/g, "")
+        .replace(/:/g, ": <span style=\"color:blue\">")
+        .replace(/,/g, "</span>")
+        .replace(/true/g, "<span style=\"color:green\">true</span>")
+        .replace(/false/g, "<span style=\"color:red\">false</span>")
+        .replace(/"/g, "")
+        .replace(/\[/g, "<span style=\"color:blue\">[")
+        .replace("hitLines.*<br> *", "")
+        .replace("magicJuice: <span style=\"color:blue\"> 50</span>", "magicJuice: <span style=\"color:green\">"+playerInfo.magicJuiceMax+"</span>")
+        +
+        "<br>X:"+player.x
+        +"<br>Y:"+player.y
+        ;
+        devSettingsContainer.innerHTML = (
+        "hitlines <kbd >b</kbd>: "+playerInfo.hitLines
+        +"<br>fly <kbd>f</kbd>: "+canFly
+        +"<br>disableFog <kbd >g</kbd>: "+disableFog
+        +"<br>Debug level <kbd >y</kbd>: "+ (playerInfo.lastLevel == "debug")
+        +"<br>FPS <kbd >t</kbd>: "+engine.fpsMax
+        
+        +"<br>"
+        +"<br>Texture ID: "+player.texture.textureCacheIds
+        +"<br>"
+        +"<br>"
+        +keyReplace(playerInfo.magicDashKey)+repeatStr(10,"&nbsp;")
+        +keyReplace(playerInfo.upKey)+"<span style=\"opacity: 0\">"+keyReplace(playerInfo.rightKey)+"</span>"
+        +"<br>"+keyReplace(playerInfo.jumpKey)+repeatStr(8,"&nbsp;")+keyReplace(playerInfo.leftKey)+keyReplace(playerInfo.downKey)+keyReplace(playerInfo.rightKey)
+        ) 
+        .replace(/true/g, "<span style=\"color:green\">true</span>")
+        .replace(/false/g, "<span style=\"color:red\">false</span>")
+        ;
+    }
 
     let fogZone = -1;
     for (let i = 0; i < levelData.fog.length; i++) {
@@ -825,8 +884,11 @@ function update() {
         }
     }
 
-
-
+    
+    
+    if (levelData.worldData.name in uniqueBehavior) {
+        uniqueBehavior[levelData.worldData.name].call()
+    }
     
     if (playerInfo.dev && canFly) {
         if (keys.includes(playerInfo.leftKey)) {
@@ -845,14 +907,19 @@ function update() {
     }
 
 
+if (deathAnim) {
+    return
+}
 
-
+if (!dashing) {
+playerInfo.terminalVelocity = -20;
+}
 
     // |------------------------- quick fall -------------------------------------------|
     if (keys.includes(playerInfo.downKey)) {
         playerInfo.terminalVelocity = -100;
         playerInfo.vx = 0;
-    }else if (!dashing){
+    }else if (dashing == "none"){
         playerInfo.terminalVelocity = -20;
     }
 
@@ -875,7 +942,7 @@ function update() {
 
     // |------------------------------ moveing left ----------------------------------|
 
-    if (keys.includes(playerInfo.leftKey)&& !playerInfo.leftWall) {
+    if (keys.includes(playerInfo.leftKey)) {
         if (playerInfo.vx < 10) {
         if (playerInfo.grounded) {
             playerInfo.vx += 7;
@@ -920,6 +987,8 @@ if (playerInfo.leftWall) {
             && player.y + player.height < levelData.teleport[i].bounding[1][1]) {
             player.x = levelData.teleport[i].spawnX;
             player.y = levelData.teleport[i].spawnY;
+            playerInfo.vx = 0;
+            playerInfo.vy = 0;
             playerInfo.lastSavePoint = [levelData.teleport[i].spawnX, levelData.teleport[i].spawnY];
             loadLevel(levelData.teleport[i].destination);
             break;
@@ -939,100 +1008,126 @@ if (playerInfo.leftWall) {
                 break;
             }
     }
-
-    if (levelData.worldData.name in uniqueBehavior) {
-        uniqueBehavior[levelData.worldData.name].call()
-    }
-
+    if (jumpBuffer > 0) {jumpBuffer--;}
 
 
     let leftwallfound = false;
     let rightwallfound = false;
     let groundfound = false;
     let rooffound = false;
-    if (jumpBuffer > 0) {jumpBuffer--;}
+
+
+
+// ---------------------------------------------- new and improved collision detection --------------------------------------------------|
     for (var i = 0; i < levelData.phyBox.length; i++) {
-        if (!leftwallfound){
-        if ( player.x >= levelData.phyBox[i][0][0]
-            && player.y  + player.height*(3/4) + playerInfo.vy/2 > levelData.phyBox[i][0][1]
-            && player.x  <= levelData.phyBox[i][1][0]
-            && player.y +  player.height/4 + playerInfo.vy/2 < levelData.phyBox[i][1][1]
-            ) {
-                playerInfo.leftWall = true;
-                leftwallfound = true;
-                player.x = levelData.phyBox[i][1][0];
-                if (playerInfo.vx > 0) {playerInfo.vx = 0;}
+        if(player.x < levelData.phyBox[i][1][0] &&
+            player.x + player.width > levelData.phyBox[i][0][0] &&
+            player.y < levelData.phyBox[i][1][1] &&
+            player.y + player.height > levelData.phyBox[i][0][1])
+        {
 
-                if (jumpBuffer > 0 && playerInfo.hasWallJump) {
-                    jumpBuffer = 0;
-                    playerInfo.vx = -20;
-                    playerInfo.vy = 30;
-                }
+            // cheack for ground
+            if(player.x +2 < levelData.phyBox[i][1][0] &&
+                player.x + player.width -2> levelData.phyBox[i][0][0] &&
+                player.y < levelData.phyBox[i][0][1]&&
+                player.y + player.height > levelData.phyBox[i][0][1] &&
+                Math.pow(player.y+player.height -  levelData.phyBox[i][0][1]-1, 2) < Math.pow(playerInfo.vy,2)) // cheacks for horosontal clipping
+            {groundfound = true;     player.y = levelData.phyBox[i][0][1]-player.height +1;
                 
-            }else{playerInfo.leftWall = false;}}
-            // |---------------------- cheak right wall --------------------|
-        if (!rightwallfound){
-        if (player.x + player.width > levelData.phyBox[i][0][0]
-            && player.y  + player.height*(3/4) + playerInfo.vy/2 > levelData.phyBox[i][0][1]
-            && player.x + player.width < levelData.phyBox[i][1][0]
-            && player.y +  player.height/4 + playerInfo.vy/2   < levelData.phyBox[i][1][1]
-            ) {
-                playerInfo.rightWall = true;
-                player.x = levelData.phyBox[i][0][0]+3 - player.width;
-                if (playerInfo.vx < 0) {playerInfo.vx = 0;}
-                rightwallfound = true;
-
-                if (jumpBuffer > 0 && playerInfo.hasWallJump) {
-                    jumpBuffer = 0;
-                    playerInfo.vx = 20;
-                    playerInfo.vy = 30;
-                }
-                
-            }else{playerInfo.rightWall = false;}}
-            // |---------------------- cheak ground --------------------|
-    if (!groundfound && player.y+player.height >= levelData.phyBox[i][0][1] && player.y+player.height <= levelData.phyBox[i][1][1]) { 
-        if (player.x+ (player.width-3) > levelData.phyBox[i][0][0] && player.x+3 < levelData.phyBox[i][1][0]) {
-        if (playerInfo.vy < 0) {
-        playerInfo.vy = 0;
-        }
-        if (player.y+player.height > levelData.phyBox[i][0][1] +1 && player.y+player.height < levelData.phyBox[i][1][1]) {
-            player.y = levelData.phyBox[i][0][1]-player.height;
-        }
-        playerInfo.grounded = true;
-        if (jumpBuffer > 0) {playerInfo.vy = 30; jumpBuffer = 0};
-        if (playerInfo.vy < 25) {
-        coyoteTime = 20;
-        }
-        if (playerInfo.vy == 0 && playerInfo.magicJuice < playerInfo.magicJuiceMax ) {
-            playerInfo.magicJuice += 0.25;
-            if (playerInfo.vx == 0) {
-                playerInfo.magicJuice += 0.25;
-            }   
-            document.documentElement.style.setProperty("--manaValue", (playerInfo.magicJuice/4)+"em");
-        }
-        // playerStats.vy += 500; // |--------------remobve later-------------------------------------------------|
-
-        groundfound = true;
-    }else {playerInfo.grounded = false;
-        if (coyoteTime > 0) {
-            coyoteTime--;
-        }
-    }}
-
-    if (!rooffound && player.y -10 >= levelData.phyBox[i][0][1] && player.y -10 <= levelData.phyBox[i][1][1]) { 
-            if (player.x+ (player.width-3) > levelData.phyBox[i][0][0] && player.x +3 < levelData.phyBox[i][1][0]) {
-                    if (playerInfo.vy > 0) {
-            playerInfo.vy = 0;}
-            if (player.y+player.height > levelData.phyBox[i][0][1] +1 && player.y+player.height < levelData.phyBox[i][1][1]) {
-                player.y = levelData.phyBox[i][0][1]-player.height;
             }
-            playerInfo.roofed = true;
-            // playerStats.vy -= 500; // |--------------remobve later-------------------------------------------------|
-            break; 
-        }else{
-            playerInfo.roofed = false;}}
-        }  
+            
+            if(player.x +playerInfo.vx < levelData.phyBox[i][1][0] &&
+                !groundfound &&
+                player.x -2 + player.width > levelData.phyBox[i][0][0] &&
+                player.y < levelData.phyBox[i][1][1] &&
+                player.y + player.height > levelData.phyBox[i][1][1])
+            {
+                rooffound = true;
+                player.y = levelData.phyBox[i][1][1]-1;
+            }
+            if(player.x < levelData.phyBox[i][1][0]  &&
+                player.x + player.width > levelData.phyBox[i][1][0]&&
+                player.y+2 < levelData.phyBox[i][1][1] &&
+                player.y + player.height-2 > levelData.phyBox[i][0][1]&&
+                Math.pow(player.x -  levelData.phyBox[i][1][0]-1, 2) < Math.pow(playerInfo.vx,2) // cheacks for vertical clipping
+                )
+            {   
+                leftwallfound = true;
+                player.x = levelData.phyBox[i][1][0]-1;
+            }
+            if(player.x < levelData.phyBox[i][0][0]  &&
+                player.x + player.width > levelData.phyBox[i][0][0]&&
+                player.y+2 < levelData.phyBox[i][1][1]&&
+                player.y + player.height-2 > levelData.phyBox[i][0][1]&&
+                Math.pow(player.x+player.width -  levelData.phyBox[i][0][0]-1, 2) < Math.pow(playerInfo.vx,2) // cheacks for vertical clipping
+                )
+            {
+                rightwallfound = true;
+                player.x = levelData.phyBox[i][0][0]-player.width+1;
+            }
+        }
+} 
 
+if (groundfound) {
+    if (playerInfo.vy < 0) {
+        playerInfo.vy = 0;
+    }
+    playerInfo.grounded = true;
+    if (jumpBuffer > 0) {playerInfo.vy = 30; jumpBuffer = 0};
+    if (playerInfo.vy < 25) {
+    coyoteTime = 20;
+    }
+    if (playerInfo.vy == 0 && playerInfo.magicJuice < playerInfo.magicJuiceMax ) {
+    playerInfo.magicJuice += 0.25;
+    if (playerInfo.vx == 0) {
+    playerInfo.magicJuice += 0.25;
+    }   
+    document.documentElement.style.setProperty("--manaValue", (playerInfo.magicJuice/4)+"em");
+}
+if (playerInfo.magicJuice > playerInfo.magicJuiceMax) {
+    playerInfo.magicJuice = playerInfo.magicJuiceMax;
+}
+
+}else {
+    playerInfo.grounded = false
+    if (coyoteTime > 0) {
+        coyoteTime--;
+    }
+}
+
+if (rooffound) {
+    if (playerInfo.vy > 0) {
+    playerInfo.vy = 0;
+}
+playerInfo.roofed = true
+}else{playerInfo.roofed = false}
+
+if (leftwallfound){
+    if (playerInfo.vx > 0) {playerInfo.vx = 0;}
+
+    if (jumpBuffer > 0 && playerInfo.hasWallJump) {
+        jumpBuffer = 0;
+        playerInfo.vx = -20;
+        playerInfo.vy = 30;
+    }
+    playerInfo.leftWall = true;
+}else{
+    playerInfo.leftWall = false;
+}
+
+if (rightwallfound){
+    if (playerInfo.vx < 0) {playerInfo.vx = 0;}
+    playerInfo.rightWall = true;
+    if (jumpBuffer > 0 && playerInfo.hasWallJump) {
+        jumpBuffer = 0;
+        playerInfo.vx = 20;
+        playerInfo.vy = 30;
+    }
+}else{
+    playerInfo.rightWall = false;
+}
+
+    
 
 
     // |--------------- detect death -------------------|
@@ -1043,11 +1138,12 @@ if (playerInfo.leftWall) {
             && player.y < levelData.deathBox[i][1][1]
             )
             {
-                player.x = playerInfo.lastSavePoint[0];
-                player.y = playerInfo.lastSavePoint[1];
-                playerInfo.vx = 0;
-                playerInfo.vy = 0;
-                keys = [];
+                deathAnim = true;
+                playerInfo.xv = 0;
+                playerInfo.yv = 0;
+                setTimeout(deathSleep, 150);
+
+
                 break;
             }
     }
@@ -1060,8 +1156,12 @@ if (playerInfo.leftWall) {
     }
 }
 
+
+
+
     player.x -= playerInfo.vx;
     player.y -= playerInfo.vy;
+
 
     if (playerInfo.dev && playerInfo.replay) {
         if (playerInfo.replayLength < replayLoop.length) {
@@ -1079,15 +1179,15 @@ if (playerInfo.leftWall) {
 
     if (playerInfo.hitLines && playerInfo.dev) {
         hitLineLeft.x = player.x;
-        hitLineLeft.y = player.y +player.height/4 + playerInfo.vy/2;
-        hitLineLeft.height = player.height*(3/5);
+        hitLineLeft.y = player.y+13;
+        hitLineLeft.height = player.height;
         hitLineLeft.width = 1;
-        hitLineRight.x = player.x+player.width-3;
-        hitLineRight.y = player.y +player.height/4 + playerInfo.vy/2;
-        hitLineRight.height = player.height*(3/5);
+        hitLineRight.x = player.x+player.width;
+        hitLineRight.y = player.y+13;
+        hitLineRight.height = player.height;
         hitLineRight.width = 1;
-        hitLineTop.x= player.x+13;
-        hitLineTop.width = player.width-6
+        hitLineTop.x= player.x + 13;
+        hitLineTop.width = player.width
         hitLineTop.y = player.y
         hitLineTop.height = 1
         hitLineBottom.x= player.x+13;
@@ -1116,6 +1216,9 @@ if (playerInfo.leftWall) {
             hitLineBottom.tint = (0x000000);
         }
     }
+
+
+
 } // update
 
 // let xFrame:number;
@@ -1130,6 +1233,5 @@ function render() {
         engine.stage.position.x = player.x*camWidth + engine.renderer.view.width/2;
 
     engine.renderer.render(engine.stage);
-    fpsMeter.tick();
 } // render 
 
