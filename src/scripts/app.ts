@@ -17,7 +17,7 @@ let playerAnimation = {
     ], 
     "broken": [
         PIXI.Texture.from('images/brokenTexture_01.png'), 
-        PIXI.Texture.from('images/brokenTexture_02.png'), 
+        PIXI.Texture.from('images/brokenTexture_02.png'),
         PIXI.Texture.from('images/brokenTexture_03.png'), 
         PIXI.Texture.from('images/brokenTexture_04.png'), 
         PIXI.Texture.from('images/brokenTexture_05.png'), 
@@ -487,6 +487,17 @@ function loadLevel(filename:string) {
 
 }
 
+let wallSlideSound = new Audio("audio/wallSlide.mp3");
+wallSlideSound.play();
+
+// async audio loop defined here
+let audioLoop = async () => {
+    wallSlideSound.loop = true;
+}
+
+let soundLoop = setInterval(audioLoop, 500);
+console.log("sound loop started", soundLoop);
+
 loadLevel(playerInfo.lastLevel);
 let playerstart:number;
 
@@ -532,7 +543,7 @@ function create() {
 
         }
         if (event.key === "i") {
-            let logType = window.prompt("error logging type", "60")
+            let logType = window.prompt("error logging type", playerInfo.errorLogging)
             let logTypeInt = parseFloat(String(logType))
             playerInfo.errorLogging = logTypeInt;
 
@@ -1023,11 +1034,11 @@ async function errorDisplay() {
         return
     }
 
-    if (playerInfo.errorLogging[0] == 1) {
+    if (playerInfo.errorLogging == 1) {
         console.log("error")
     }
 
-    if (playerInfo.errorLogging[0] == -1) {
+    if (playerInfo.errorLogging == -1) {
         let audio = new Audio('audio/windowsError.mp3');
         audio.play();
         document.documentElement.style.setProperty("--bigFatError", "1");

@@ -65,6 +65,7 @@ const config = {
             { from: 'src/images/death_05.png', to: 'images/' },
 
             { from: 'src/audio/windowsError.mp3', to: 'audio/' },
+            { from: 'src/audio/wallSlide.mp3', to: 'audio/' },
 
 
             { from: 'src/scripts/Levels/boss-1/stagAttack.png', to: 'images/' },
