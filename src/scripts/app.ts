@@ -162,7 +162,8 @@ let playerInfo:{[name:string]:any} = {
     dev: true,
     hitLines: false,
     replay: false,
-    replayLength: 60
+    replayLength: 60,
+    errorLogging: 1,
 }
 
 
@@ -282,8 +283,8 @@ const pickupJump = () => {
             playerInfo.hasWallJump = true;
             console.log("got wall jump");
             wallJumpIcon.visible = false;
-            wallJumpIcon.x = -100
-            wallJumpIcon.y = -100
+            wallJumpIcon.x = -1000
+            wallJumpIcon.y = -1000
             saveCookie();
         }
 }
@@ -514,14 +515,6 @@ function create() {
         }
 
         if (event.key === "Escape") {
-            engine.stage.position.x = 0;
-            engine.stage.position.y = 0;
-            engine.stage.scale = new PIXI.Point(1, 1);
-            engine.renderer.render(engine.stage);
-            let screeshot = engine.renderer.view.toDataURL();
-            // https://onlinepngtools.com/convert-data-uri-to-png
-        navigator.clipboard.writeText(screeshot);
-        engine.stage.scale = new PIXI.Point((2000/window.innerWidth)*1.5, (2000/window.innerHeight)*1.5);
 
         }
 
@@ -536,6 +529,12 @@ function create() {
             console.log(engine.fpsMax);
             clearInterval(refreshIntervalId)
             refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
+
+        }
+        if (event.key === "i") {
+            let logType = window.prompt("error logging type", "60")
+            let logTypeInt = parseFloat(String(logType))
+            playerInfo.errorLogging = logTypeInt;
 
         }
         // |-----------------------------------------------------------DISPLAY REPLAY FILE -----------------------------------|
@@ -846,6 +845,7 @@ function update() {
         "hitlines <kbd >b</kbd>: "+playerInfo.hitLines
         +"<br>fly <kbd>f</kbd>: "+canFly
         +"<br>disableFog <kbd >g</kbd>: "+disableFog
+        +"<br>error testing & display <kbd >i</kbd>: "+playerInfo.errorLogging
         +"<br>Debug level <kbd >y</kbd>: "+ (playerInfo.lastLevel == "debug")
         +"<br>FPS <kbd >t</kbd>: "+engine.fpsMax
         
@@ -981,10 +981,10 @@ if (playerInfo.leftWall) {
 
     // |--------------------------- load into new level ----------------------------------------------------|
     for (let i = 0; i < levelData.teleport.length; i++) {
-        if (player.x > levelData.teleport[i].bounding[0][0]
-            && player.y > levelData.teleport[i].bounding[0][1]
-            && player.x + player.width < levelData.teleport[i].bounding[1][0]
-            && player.y + player.height < levelData.teleport[i].bounding[1][1]) {
+        if (player.x+10 > levelData.teleport[i].bounding[0][0]
+            && player.y + 10 > levelData.teleport[i].bounding[0][1]
+            && player.x + player.width - 10 < levelData.teleport[i].bounding[1][0]
+            && player.y + player.height - 10 < levelData.teleport[i].bounding[1][1]) {
             player.x = levelData.teleport[i].spawnX;
             player.y = levelData.teleport[i].spawnY;
             playerInfo.vx = 0;
@@ -1015,8 +1015,28 @@ if (playerInfo.leftWall) {
     let rightwallfound = false;
     let groundfound = false;
     let rooffound = false;
+    let foundhitbox = false;
 
+async function errorDisplay() {
 
+    if (!playerInfo.dev) {
+        return
+    }
+
+    if (playerInfo.errorLogging[0] == 1) {
+        console.log("error")
+    }
+
+    if (playerInfo.errorLogging[0] == -1) {
+        let audio = new Audio('audio/windowsError.mp3');
+        audio.play();
+        document.documentElement.style.setProperty("--bigFatError", "1");
+        await new Promise(resolve => setTimeout(resolve, 100));
+        document.documentElement.style.setProperty("--bigFatError", "0");
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+}
 
 // ---------------------------------------------- new and improved collision detection --------------------------------------------------|
     for (var i = 0; i < levelData.phyBox.length; i++) {
@@ -1025,12 +1045,10 @@ if (playerInfo.leftWall) {
             player.y < levelData.phyBox[i][1][1] &&
             player.y + player.height > levelData.phyBox[i][0][1])
         {
+            foundhitbox = true;
 
             // cheack for ground
-            if(player.x +2 < levelData.phyBox[i][1][0] &&
-                player.x + player.width -2> levelData.phyBox[i][0][0] &&
-                player.y < levelData.phyBox[i][0][1]&&
-                player.y + player.height > levelData.phyBox[i][0][1] &&
+            if(
                 Math.pow(player.y+player.height -  levelData.phyBox[i][0][1]-1, 2) < Math.pow(playerInfo.vy,2)) // cheacks for horosontal clipping
             {groundfound = true;     player.y = levelData.phyBox[i][0][1]-player.height +1;
                 
@@ -1040,7 +1058,9 @@ if (playerInfo.leftWall) {
                 !groundfound &&
                 player.x -2 + player.width > levelData.phyBox[i][0][0] &&
                 player.y < levelData.phyBox[i][1][1] &&
-                player.y + player.height > levelData.phyBox[i][1][1])
+                player.y + player.height > levelData.phyBox[i][1][1] 
+                //&& Math.pow(player.y - levelData.phyBox[i][0][1], 2) < Math.pow(playerInfo.vy,2)
+                )
             {
                 rooffound = true;
                 player.y = levelData.phyBox[i][1][1]-1;
@@ -1067,6 +1087,19 @@ if (playerInfo.leftWall) {
             }
         }
 } 
+    if(foundhitbox &&
+        !groundfound
+        && !leftwallfound
+        && !rightwallfound
+        && !rooffound
+        && playerInfo.vx != 0
+        && playerInfo.vy != 0
+        )
+    {
+        // player.y += playerInfo.vy;
+        // player.x += playerInfo.vx;
+        errorDisplay();
+    }
 
 if (groundfound) {
     if (playerInfo.vy < 0) {
