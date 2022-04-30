@@ -13,6 +13,8 @@ body {
 	font-size: 1.4em;
 	line-height: 1.5;
 	width: 100vw;
+	left:0;
+	top:0;
 	height: 100vh;
 	margin: 0;
 	display: flex;
@@ -45,6 +47,15 @@ kbd {
     line-height: 1;
     padding: 2px 4px;
     white-space: nowrap;
+}
+
+a{
+	position: absolute;
+	bottom:1vh;
+	left:1vh;
+	color: #00f;
+	text-decoration: underline;
+	z-index: 12;
 }
 
 #error {
@@ -127,3 +138,39 @@ CANVAS{
 #replayTools:hover {
     --toolBarTop: 40vh;
 }
+
+/* |----------------------------------------------------------- EDITOR THINGS ------------------------------------------| */
+
+#editorTools {
+	position: absolute;
+	overflow: hidden;
+	padding: 1vw;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	top: 0;
+	left: 0;
+	width: 5vw;
+	height: 100vh;
+	border: 1px solid #000000;
+}
+
+#physBoxSelect {
+	height: 3vw;
+	width: 3vw;
+	border: 1px solid #000000;
+	background-color: #ffffffd8;
+	text-align: left;
+}
+
+#levelSelector {
+	position: absolute;
+	top: 0vh;
+	left: 8vw;
+}
+
+/* #physBoxSelect:focus {
+	box-shadow: 0 0 3px #000000;
+} */

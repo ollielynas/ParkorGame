@@ -2,66 +2,105 @@ import * as PIXI from 'pixi.js'
 
 
 
+const getTexture = (name:string) => {
+    let texture = PIXI.Texture.from(name);
+
+
+    try {
+            // TODO: test if texture path is valid
+    }catch (e) {
+        console.log("texture not found")
+    }
+
+    return texture;
+}
+
+
+console.log(getTexture("invalid"))
+
 let playerAnimation = {
     "idle": [
-            PIXI.Texture.from('images/idle_01.png')
+            getTexture('src/images/idle_01.png')
         ],
     "run": [
-            PIXI.Texture.from('images/run_01.png'), 
-            PIXI.Texture.from('images/run_02.png')
+            getTexture('src/images/run_01.png'), 
+            getTexture('src/images/run_02.png')
         ],
     "wallSlide" : [
-        PIXI.Texture.from('images/wallSlide_01.png'), 
-        PIXI.Texture.from('images/wallSlide_02.png'), 
-        PIXI.Texture.from('images/wallSlide_03.png'), 
+        getTexture('src/images/wallSlide_01.png'), 
+        getTexture('src/images/wallSlide_02.png'), 
+        getTexture('src/images/wallSlide_03.png'), 
     ], 
     "broken": [
-        PIXI.Texture.from('images/brokenTexture_01.png'), 
-        PIXI.Texture.from('images/brokenTexture_02.png'),
-        PIXI.Texture.from('images/brokenTexture_03.png'), 
-        PIXI.Texture.from('images/brokenTexture_04.png'), 
-        PIXI.Texture.from('images/brokenTexture_05.png'), 
+        getTexture('src/images/brokenTexture_01.png'), 
+        getTexture('src/images/brokenTexture_02.png'),
+        getTexture('src/images/brokenTexture_03.png'), 
+        getTexture('src/images/brokenTexture_04.png'), 
+        getTexture('src/images/brokenTexture_05.png'), 
 
     ],
     "dash": [
-        PIXI.Texture.from('images/dash_01.png'), 
-        PIXI.Texture.from('images/dash_02.png'), 
-        PIXI.Texture.from('images/dash_03.png'), 
-        PIXI.Texture.from('images/dash_04.png'), 
-        PIXI.Texture.from('images/dash_05.png'), 
+        getTexture('src/images/dash_01.png'), 
+        getTexture('src/images/dash_02.png'), 
+        getTexture('src/images/dash_03.png'), 
+        getTexture('src/images/dash_04.png'), 
+        getTexture('src/images/dash_05.png'), 
     ],
     "fall": [
-        PIXI.Texture.from('images/fall_01.png'),
+        getTexture('src/images/fall_01.png'),
     ],
     "jump": [
-        PIXI.Texture.from('images/jump_01.png'),
+        getTexture('src/images/jump_01.png'),
     ],
     "death": [
-        PIXI.Texture.from('images/death_01.png'),
-        PIXI.Texture.from('images/death_02.png'),
-        PIXI.Texture.from('images/death_03.png'),
-        PIXI.Texture.from('images/death_04.png'),
-        PIXI.Texture.from('images/death_05.png'),
+        getTexture('src/images/death_01.png'),
+        getTexture('src/images/death_02.png'),
+        getTexture('src/images/death_03.png'),
+        getTexture('src/images/death_04.png'),
+        getTexture('src/images/death_05.png'),
+    ],
+    "wallJump": [
+        getTexture('src/images/wallJump.png'),
     ]
 }
 
-const player = PIXI.Sprite.from('images/idle_01.png');
+const player = PIXI.Sprite.from('src/images/idle_01.png');
 
 
 // maby something like this https://m.media-amazon.com/images/I/71GqQB4KbiS._AC_UL320_.jpg
 const spike1 = PIXI.Sprite.from('.images/stagAttack.png');
-const spike2 = PIXI.Sprite.from('images/stagAttack.png');
-const spike3 = PIXI.Sprite.from('images/stagAttack.png');
-const spike4 = PIXI.Sprite.from('images/stagAttack.png');
-const spike5 = PIXI.Sprite.from('images/stagAttack.png');
-const spike6 = PIXI.Sprite.from('images/stagAttack.png');
-const spike7 = PIXI.Sprite.from('images/stagAttack.png');
-const spike8 = PIXI.Sprite.from('images/stagAttack.png');
-const spike9 = PIXI.Sprite.from('images/stagAttack.png');
-const spike10 = PIXI.Sprite.from('images/stagAttack.png');
+const spike2 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike3 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike4 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike5 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike6 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike7 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike8 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike9 = PIXI.Sprite.from('src/images/stagAttack.png');
+const spike10 = PIXI.Sprite.from('src/images/stagAttack.png');
 
-const backgroundImage = PIXI.Sprite.from('images/idle_01.png')
-// const foreground = PIXI.Sprite.from('images/idle_01.png');
+
+// |------------------------------------------------------------------ sounds ------------------------------------------|
+let footstepSound = new Audio('audio/footstep.mp3');
+footstepSound.volume = 0.5;
+document.body.appendChild(footstepSound);
+let errorSound = new Audio('audio/windowsError.mp3');
+errorSound.volume = 1;
+document.body.appendChild(errorSound);
+
+let wallSlideSound = new Audio("audio/wallSlide.mp3");
+document.body.appendChild(wallSlideSound);
+
+let wooshSound = new Audio('audio/woosh.mp3');
+document.body.appendChild(wooshSound);
+
+let playerDeathSound = new Audio('audio/playerDeath.mp3');
+document.body.appendChild(playerDeathSound);
+
+const backgroundImage = PIXI.Sprite.from('src/images/idle_01.png')
+// const foreground = PIXI.Sprite.from('src/images/idle_01.png');
+
+
 
 
 interface EngineParams {
@@ -185,7 +224,7 @@ hitLineBottom.lineStyle(1, 0x1ec732);
 hitLineBottom.drawRect(0,0, 1, 1);
 
 
-const wallJumpIcon = PIXI.Sprite.from('images/wallJumpIcon.png');
+const wallJumpIcon = PIXI.Sprite.from('src/images/wallJumpIcon.png');
 const labCave1Setup = () => {
     if (!playerInfo.hasWallJump){
         wallJumpIcon.height = 50;
@@ -372,8 +411,8 @@ function loadLevel(filename:string) {
 
 
 
-    console.log('images/'+filename+'-background.png');
-    backgroundImage.texture = PIXI.Texture.from('images/'+filename+'-background.png');
+    console.log('src/images/'+filename+'-background.png');
+    backgroundImage.texture = getTexture('src/images/'+filename+'-background.png');
     backgroundImage.height = 2000
     backgroundImage.width = 2000
 
@@ -487,16 +526,8 @@ function loadLevel(filename:string) {
 
 }
 
-let wallSlideSound = new Audio("audio/wallSlide.mp3");
 wallSlideSound.play();
-
-// async audio loop defined here
-let audioLoop = async () => {
-    wallSlideSound.loop = true;
-}
-
-let soundLoop = setInterval(audioLoop, 500);
-console.log("sound loop started", soundLoop);
+wallSlideSound.loop = true;
 
 loadLevel(playerInfo.lastLevel);
 let playerstart:number;
@@ -534,12 +565,17 @@ function create() {
         if (event.key === "t") {
             let inputTime = window.prompt("input game speed, defalt is 60", "60")
             let inputTimeInt = parseFloat(String(inputTime))
-            if (isNaN(inputTimeInt)|| inputTimeInt < 0.0000000001) inputTimeInt = 60;
+            if (isNaN(inputTimeInt)|| inputTimeInt <= 0) inputTimeInt = 60;
             console.log("game speed:",inputTimeInt)
             engine.fpsMax = inputTimeInt;
             console.log(engine.fpsMax);
             clearInterval(refreshIntervalId)
+            clearInterval(animatonInterval)
             refreshIntervalId = setInterval(update, 1000.0 / engine.fpsMax);
+            animatonInterval = setInterval(animationLoop, 50 / (engine.fpsMax/60));
+            for (let i = 0; i < document.getElementsByTagName('audio').length; i++) {
+                document.getElementsByTagName('audio')[i].playbackRate = engine.fpsMax/60;
+            }
 
         }
         if (event.key === "i") {
@@ -630,7 +666,6 @@ function create() {
             jumpBuffer = 10;
         if (coyoteTime > 0){
             if (event.repeat) {return}
-            console.log("jumped");
             playerInfo.vy = 30;
             coyoteTime = 0;
             
@@ -720,9 +755,11 @@ let camWidth:number = (2000/window.innerWidth)*-1.5;
 
     let rotation = 0 // 12 to flip
 
+let animationState = "null";
+
 // |)|----------------------------------------------------------------- ANIMATION LOOP ------------------------------------------------|(|
 let animationLoopNum:number = 1;
-setInterval(async () => {
+const  animationLoop = async () => {
     animationLoopNum += 1
     if (animationLoopNum >= 10) {animationLoopNum =1}
 
@@ -740,9 +777,19 @@ setInterval(async () => {
         if (playerInfo.vx < 0) {
             texture = playerAnimation.run[Math.floor(animationLoopNum/10 * playerAnimation.run.length)]
             rotation = 0;
+            footstepSound.play();
+            if (footstepSound.currentTime < 0.01) {
+            footstepSound.volume = (Math.floor(Math.random() * (800 - 200)) + 200) / 1000;
+            }
         }else if (playerInfo.vx > 0) {
             texture = playerAnimation.run[Math.floor(animationLoopNum/10 * playerAnimation.run.length)]
             rotation = 12;
+            footstepSound.play();
+        }else if (footstepSound.currentTime > 0.5) {
+            footstepSound.currentTime = 0;
+            footstepSound.pause();
+            footstepSound.volume = 0.1;
+            footstepSound.volume = (Math.floor(Math.random() * (800 - 200)) + 200) / 1000;
         }
     }
 
@@ -759,7 +806,7 @@ setInterval(async () => {
     player.height = 68;
     player.width = 51;
 
-  if (dashing != "none") {
+    if (dashing != "none") {
         console.log("dashing animation" + dashing)
         texture = playerAnimation.dash[Math.floor(animationLoopNum/10 * playerAnimation.dash.length)]
         if (dashing == "left") {
@@ -779,18 +826,29 @@ setInterval(async () => {
     }
 
     if (deathAnim) {
-        texture = texture = playerAnimation.death[Math.floor(animationLoopNum/10 * playerAnimation.death.length)]
+        texture = playerAnimation.death[Math.floor(animationLoopNum/10 * playerAnimation.death.length)]
     }
 
+
+    if (animationState == "wallJumpLeft") {
+        texture = playerAnimation.wallJump[Math.floor(animationLoopNum/10 * playerAnimation.wallJump.length)]
+        rotation = 0
+    }
+    else if (animationState == "wallJumpRight") {
+        texture = playerAnimation.wallJump[Math.floor(animationLoopNum/10 * playerAnimation.wallJump.length)]
+        rotation = 12
+    }
+    
     //texture = playerAnimation.broken[Math.floor(animationLoopNum/10 * playerAnimation.broken.length)]
     player.texture = texture;
     player.texture.rotate  = rotation;
     // node_modules\pixi.js\pixi.js.d.ts line #12519
 
-}, 50);
+}
+let animatonInterval = setInterval(animationLoop, 50)
 
 let textAreas = [
-
+    
 ]
 
 for (let j = 0; j < engine.stage.children.length; j++) {
@@ -833,6 +891,7 @@ function keyReplace(key:string) {
 }
 let repeatStr = (n:number, s:string) => s.repeat(n);
 
+
 function update() {
     //fpsMeter.updateTime();
 
@@ -852,7 +911,23 @@ function update() {
         "<br>X:"+player.x
         +"<br>Y:"+player.y
         ;
+
+        let audioList = []
+        for (let i = 0; i < document.getElementsByTagName('audio').length; i++) {
+            audioList.push(
+            // JSON.stringify(Math.ceil(document.getElementsByTagName('audio')[i]
+            // .currentTime*1000)/1000)
+            // .replace("0/", "0.00")+"/"+
+            // document.getElementsByTagName('audio')[i].duration+repeatStr(8,"&nbsp;")+
+            JSON.stringify(document.getElementsByTagName('audio')[i].paused)
+            .replace("false", "<span style='color:green'>")
+            .replace("true", "<span style='font-size:0.5vw'>")+
+            document.getElementsByTagName('audio')[i].src.replace(/http.*audio\//, "")+"</span>"
+            )
+        }
+
         devSettingsContainer.innerHTML = (
+        audioList.join("<br>")+"<br><br><br>"+
         "hitlines <kbd >b</kbd>: "+playerInfo.hitLines
         +"<br>fly <kbd>f</kbd>: "+canFly
         +"<br>disableFog <kbd >g</kbd>: "+disableFog
@@ -1039,8 +1114,7 @@ async function errorDisplay() {
     }
 
     if (playerInfo.errorLogging == -1) {
-        let audio = new Audio('audio/windowsError.mp3');
-        audio.play();
+        errorSound.play();
         document.documentElement.style.setProperty("--bigFatError", "1");
         await new Promise(resolve => setTimeout(resolve, 100));
         document.documentElement.style.setProperty("--bigFatError", "0");
@@ -1098,6 +1172,7 @@ async function errorDisplay() {
             }
         }
 } 
+// cheak for cliping
     if(foundhitbox &&
         !groundfound
         && !leftwallfound
@@ -1107,10 +1182,53 @@ async function errorDisplay() {
         && playerInfo.vy != 0
         )
     {
-        // player.y += playerInfo.vy;
-        // player.x += playerInfo.vx;
+
+    // player hitbox labels
+
+    //     ya
+    //    _____
+    //   |     |
+    //xa |     | xb
+    //   |     |
+    //   |_____|
+    //      yb
+
+
         errorDisplay();
+        // in event of impossible clipping return the player to whichever edege requires the least movement
+        for (var i = 0; i < levelData.phyBox.length; i++) {
+            if(player.x < levelData.phyBox[i][1][0] &&
+                player.x + player.width > levelData.phyBox[i][0][0] &&
+                player.y < levelData.phyBox[i][1][1] &&
+                player.y + player.height > levelData.phyBox[i][0][1])
+            {
+            var difference = function (a:number, b:number) { return Math.abs(a - b); }
+            let xa = difference(player.x+player.height, levelData.phyBox[i][0][0]);
+            let ya = difference(player.y+player.width, levelData.phyBox[i][0][1]);
+            let xb = difference(player.x, levelData.phyBox[i][1][0]);
+            let yb = difference(player.y, levelData.phyBox[i][1][1]);
+            let lowestItem = [xa, ya, xb, yb].indexOf([xa, ya, xb, yb].reduce((a, b) => Math.min(a, b)));
+            console.log([xa, ya, xb, yb])
+
+            if (lowestItem == 0) {
+                playerInfo.vx = 0;
+                player.x = levelData.phyBox[i][0][0] - player.width;
+            }
+            if (lowestItem == 1) {
+                playerInfo.vy = 0;
+                player.y = levelData.phyBox[i][0][1] - player.height;
+            }
+            if (lowestItem == 2) {
+                playerInfo.vx = 0;
+                player.x = levelData.phyBox[i][1][0];
+            }
+            if (lowestItem == 3) {
+                playerInfo.vy = 0;
+                player.y = levelData.phyBox[i][1][1];
+            }
+        }
     }
+}
 
 if (groundfound) {
     if (playerInfo.vy < 0) {
@@ -1153,6 +1271,11 @@ if (leftwallfound){
         jumpBuffer = 0;
         playerInfo.vx = -20;
         playerInfo.vy = 30;
+        wooshSound.currentTime = 0;
+        wooshSound.play();
+        animationState = "wallJumpLeft";
+        setTimeout(() => {animationState = "null"}, 100);
+
     }
     playerInfo.leftWall = true;
 }else{
@@ -1166,6 +1289,10 @@ if (rightwallfound){
         jumpBuffer = 0;
         playerInfo.vx = 20;
         playerInfo.vy = 30;
+        wooshSound.currentTime = 0;
+        wooshSound.play();
+        animationState = "wallJumpRight";
+        setTimeout(() => {animationState = "null"}, 100);
     }
 }else{
     playerInfo.rightWall = false;
@@ -1185,9 +1312,8 @@ if (rightwallfound){
                 deathAnim = true;
                 playerInfo.xv = 0;
                 playerInfo.yv = 0;
+                playerDeathSound.play();
                 setTimeout(deathSleep, 150);
-
-
                 break;
             }
     }
