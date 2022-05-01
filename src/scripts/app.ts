@@ -308,7 +308,7 @@ toggle.addEventListener('click', () => {
         playerInfo.dev = !playerInfo.dev
         if (!playerInfo.dev) {
             dataContainer.innerHTML = ""
-            
+
         }
         toggle.style.bottom= "-100vh";
         toggle.style.left = "-100vh"
@@ -322,7 +322,6 @@ let uniqueBehavior:{[key:string]:any} = {
     "labCave-1": pickupJump,
     "boss-1": bossLoop
 }
-
 
 
 
@@ -412,21 +411,54 @@ function loadLevel(filename:string) {
     if (playerInfo.displayType == "hitbox") {  // |-------------- add physiks hitboxes
     for (let i = 0; i < levelData.phyBox.length; i++) {
         let obj = new PIXI.Graphics();
-        obj.beginFill(0xffffff);
-        obj.lineStyle(1, 0x000000);
+        obj.beginFill(0xffffff, 0);
+        obj.lineStyle(3, 0x000000);
         obj.drawRect(levelData.phyBox[i][0][0], levelData.phyBox[i][0][1], levelData.phyBox[i][1][0]-levelData.phyBox[i][0][0], levelData.phyBox[i][1][1]-levelData.phyBox[i][0][1]);
-        staticLevelContainer.addChild(obj)
-        if (levelData.phyBox[i].length == 3) {
+        if (levelData.phyBox[i].length >= 3) {
             let label = new PIXI.Text(levelData.phyBox[i][2], {fontFamily: 'Arial', fontSize: 8, fill: 0x000000, align: 'center'});
             label.x = levelData.phyBox[i][0][0];
             label.y = levelData.phyBox[i][0][1];
             staticLevelContainer.addChild(label);
+            console.log(levelData.phyBox[i][2])
+            PIXI.RenderTexture.EMPTY
+            if (levelData.phyBox[i][2].includes("stone")) {
+                console.log("found stone")
+                let textureImage = PIXI.Texture.from('src/images/Tileset.png')
+                PIXI.RenderTexture.create(textureImage)
+                let tileingSprite = new PIXI.TilingSprite(textureImage.clone(), (levelData.phyBox[i][1][0]-levelData.phyBox[i][0][0]), (levelData.phyBox[i][1][1]-levelData.phyBox[i][0][1]))
+                tileingSprite.x = levelData.phyBox[i][0][0];
+                tileingSprite.y = levelData.phyBox[i][0][1];
+
+                staticLevelContainer.addChild(tileingSprite);
+                (async () => {
+                    await PIXI.RenderTexture.create(tileingSprite)
+                    //tileingSprite.texture.frame = new PIXI.Rectangle(Math.floor(Math.random()*70), Math.floor(Math.random()*70), 30, 30);
+                    tileingSprite.texture.frame = new PIXI.Rectangle(16, 16,32,32)
+                })();
+            }
+            if (levelData.phyBox[i][2].includes("grass")) {
+                console.log("found stone")
+                let textureImage = PIXI.Texture.from('src/images/Tileset.png')
+                PIXI.RenderTexture.create(textureImage)
+                let tileingSprite = new PIXI.TilingSprite(textureImage.clone(), (levelData.phyBox[i][1][0]-levelData.phyBox[i][0][0]), (levelData.phyBox[i][1][1]-levelData.phyBox[i][0][1]))
+                tileingSprite.x = levelData.phyBox[i][0][0];
+                tileingSprite.y = levelData.phyBox[i][0][1];
+
+                staticLevelContainer.addChild(tileingSprite);
+                (async () => {
+                    await PIXI.RenderTexture.create(tileingSprite)
+                    //tileingSprite.texture.frame = new PIXI.Rectangle(Math.floor(Math.random()*70), Math.floor(Math.random()*70), 30, 30);
+                    tileingSprite.texture.frame = new PIXI.Rectangle(16, 0,32,48)
+                })();
+            }
+
     }else{
         let label = new PIXI.Text(JSON.stringify(levelData.phyBox[i]), {fontFamily: 'Arial', fontSize: 8, fill: 0x000000, align: 'center'});
             label.x = levelData.phyBox[i][0][0];
             label.y = levelData.phyBox[i][0][1];
             staticLevelContainer.addChild(label);
-    }
+    }        staticLevelContainer.addChild(obj)
+
 
 }
 
@@ -758,6 +790,8 @@ let camWidth:number = (2000/window.innerWidth)*-1.5;
     let rotation = 0 // 12 to flip
 mjBar.texture.rotate = 2;
 mjBar.alpha = 0.5;
+
+
 
 let animationState = "null";
 console.log(animationState);
