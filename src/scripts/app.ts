@@ -478,6 +478,14 @@ function loadLevel(filename:string) {
         staticLevelContainer.addChild(obj6)
     }
     
+    let border = new PIXI.Graphics();
+    border.beginFill(0xc27b00, 1);
+    border.name = "border"
+    let filter = new PIXI.filters.BlurFilter(30);
+    border.filters = [filter];
+    border.drawRect(2000, -2000, 2000, 6000);
+    staticLevelContainer.addChild(border)
+
     for (let i = 0; i < levelData.teleport.length; i++) {
         console.log("loading level teliports")
         let obj3 = new PIXI.Graphics();
@@ -506,13 +514,12 @@ function loadLevel(filename:string) {
         fogObj.drawRect(levelData.fog[i][0][0], levelData.fog[i][0][1], levelData.fog[i][1][0]-levelData.fog[i][0][0], levelData.fog[i][1][1]-levelData.fog[i][0][1]);
         engine.stage.addChild(fogObj)
     }
-    
+
+
     
 
     }
-    else if (playerInfo.displayType = "graphic"){
-        staticLevelContainer.addChild(backgroundImage);
-    }
+
     if (playerInfo.useBitmap) {
         staticLevelContainer.cacheAsBitmap = true;
     }
