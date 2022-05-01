@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { BloomFilter  } from 'pixi-filters';
-const bloomFilter = new BloomFilter();
+const bloomFilter:any = new BloomFilter();
 
 
 const getTexture = (name:string) => {
@@ -21,18 +21,17 @@ const getTexture = (name:string) => {
 
 console.log(getTexture("invalid"))
 
-
+document.addEventListener("visibilitychange", function() {
+    if (document.visibilityState === 'visible') {
+        console.log('has focus');
+        keys = [];
+    } else {
+        console.log('lost focus');
+    }
+});
 const player = PIXI.Sprite.from('src/images/SpriteSheet.png');
 player.scale.set(1.3,1.3);
-
-console.log(new BloomFilter());
-//player.filters.push(new BloomFilter());
-
-// shader.addEventListener('change', () => {
-//     console.log(shader.value)
-//     colorMatrix.contrast(parseInt(shader.value)/1000, false);
-// })
-
+console.log("filter", bloomFilter)
 
 player.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
@@ -727,7 +726,7 @@ let camWidth:number = (2000/window.innerWidth)*-1.5;
     let rotation = 0 // 12 to flip
 
 let animationState = "null";
-
+console.log(animationState);
 // |)|----------------------------------------------------------------- ANIMATION LOOP ------------------------------------------------|(|
 let animationLoopNum:number = 1;
 const  animationLoop = async () => {
@@ -862,15 +861,6 @@ function keyReplace(key:string) {
 }
 let repeatStr = (n:number, s:string) => s.repeat(n);
 
-function removeItem(array:any[], item:any) {
-    var i = array.length;
-
-    while (i--) {
-        if (array[i] === item) {
-            array.splice(array.indexOf(item), 1);
-        }
-    }
-}
 
 
 function update() {
