@@ -58,6 +58,13 @@ a{
 	z-index: 12;
 }
 
+#click_me_to_enter_dev_mode {
+	position: absolute;
+	bottom: -100vh;
+	left: -100vw;
+	z-index: 13;
+}
+
 #error {
 	height: 100vh;
 	width: 100vw;

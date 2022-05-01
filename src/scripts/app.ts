@@ -18,7 +18,6 @@ const getTexture = (name:string) => {
 }
 
 
-
 console.log(getTexture("invalid"))
 
 document.addEventListener("visibilitychange", function() {
@@ -30,10 +29,14 @@ document.addEventListener("visibilitychange", function() {
     }
 });
 const player = PIXI.Sprite.from('src/images/SpriteSheet.png');
-player.scale.set(1.3,1.3);
+player.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+// player.scale.set(1.3,1.3);
 console.log("filter", bloomFilter)
 
-player.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+const mjBar = PIXI.Sprite.from('src/images/MJBar.png');
+mjBar.scale = new PIXI.Point(1, 0.9);
+
+mjBar.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
 // maby something like this https://m.media-amazon.com/images/I/71GqQB4KbiS._AC_UL320_.jpg
 const spike1 = PIXI.Sprite.from('.images/stagAttack.png');
@@ -175,6 +178,7 @@ let playerInfo:{[name:string]:any} = {
 }
 
 
+
 let hitLineLeft = new PIXI.Graphics();
 // hitLineLeft.beginFill(0xffffff);
 hitLineLeft.lineStyle(1, 0x1ec732);
@@ -297,7 +301,20 @@ const pickupJump = () => {
         }
 }
 
+const toggle = (<HTMLInputElement>document.getElementById("click_me_to_enter_dev_mode"))
 
+toggle.addEventListener('click', () => {
+    if (confirm("toggle dev mode?")) {
+        playerInfo.dev = !playerInfo.dev
+        if (!playerInfo.dev) {
+            dataContainer.innerHTML = ""
+            
+        }
+        toggle.style.bottom= "-100vh";
+        toggle.style.left = "-100vh"
+        saveCookie();
+    }
+})
 
 
 
@@ -470,7 +487,11 @@ function loadLevel(filename:string) {
     if (levelData.worldData.name in uniqueSetup) {
         uniqueSetup[levelData.worldData.name].call()
     }
+        engine.stage.sortableChildren = true;
         engine.stage.addChild(player);
+        player.zIndex = 1;
+        engine.stage.addChild(mjBar);
+        mjBar.zIndex = 2;
 
     if (playerInfo.hitLines && playerInfo.hitLines) {
         engine.stage.addChild(hitLineLeft)
@@ -554,6 +575,17 @@ function create() {
             playerInfo.errorLogging = logTypeInt;
 
         }
+
+        if (event.key === "c") {
+            let logType = window.prompt("cookie", JSON.stringify(playerInfo))
+            let newcookies = String(logType)
+            if (typeof(JSON.parse(newcookies))== "object") {
+            playerInfo = JSON.parse(newcookies);
+            saveCookie()
+            }
+
+        }
+
         // |-----------------------------------------------------------DISPLAY REPLAY FILE -----------------------------------|
         if (event.key === "r - disabled for now") {// a replay file will allow you to record a section of gameplay in a revolveing buffer
         if (keys.includes("Alt")) {
@@ -724,21 +756,32 @@ let camHeight:number = (2000/window.innerHeight)*-1.5; //
 let camWidth:number = (2000/window.innerWidth)*-1.5;
 
     let rotation = 0 // 12 to flip
+mjBar.texture.rotate = 2;
+mjBar.alpha = 0.5;
 
 let animationState = "null";
 console.log(animationState);
 // |)|----------------------------------------------------------------- ANIMATION LOOP ------------------------------------------------|(|
 let animationLoopNum:number = 1;
 const  animationLoop = async () => {
+
+
+
     player.texture.frame = new PIXI.Rectangle(0, 0, 50, 60);
+    // player.scale.y = 1+(animationLoopNum/10)*0.1;
     animationLoopNum += 1
     if (animationLoopNum >= 10) {animationLoopNum =1}
 
+    mjBar.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/7))+0)*50, 0, 50, 20)
+    mjBar.texture.trim = new PIXI.Rectangle(0, 0+ 20-(playerInfo.magicJuice/playerInfo.magicJuiceMax)*20, 28, (playerInfo.magicJuice/playerInfo.magicJuiceMax)*20 )
 
-    if (playerInfo.vy < 0) {player.texture.frame = new PIXI.Rectangle(200, 0, 50, 60);}
+    if (playerInfo.vy < 0) {player.texture.frame = new PIXI.Rectangle(200, 0, 50, 60);    
+        mjBar.texture.trim = new PIXI.Rectangle(0, 0+ 20-(playerInfo.magicJuice/playerInfo.magicJuiceMax)*20, 28, (playerInfo.magicJuice/playerInfo.magicJuiceMax)*20 )
+}
 
-    else if (playerInfo.vy > 0) {player.texture.frame = new PIXI.Rectangle(250, 0, 50, 60);}
-
+    else if (playerInfo.vy > 0) {player.texture.frame = new PIXI.Rectangle(250, 0, 50, 60);
+        mjBar.texture.trim = new PIXI.Rectangle(0, 3 + 20-(playerInfo.magicJuice/playerInfo.magicJuiceMax)*20, 28, (playerInfo.magicJuice/playerInfo.magicJuiceMax)*20 )
+    }
 
     if (rotation != 0) {
         rotation = 0
@@ -770,10 +813,13 @@ const  animationLoop = async () => {
     if (playerInfo.leftWall && keys.includes(playerInfo.leftKey)) {
         rotation = 0
         player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/3))+9)*50, 0, 50, 60)
+        mjBar.texture.trim = new PIXI.Rectangle(0, -8 + 31-(playerInfo.magicJuice/playerInfo.magicJuiceMax)*31, 16 , (playerInfo.magicJuice/playerInfo.magicJuiceMax)*31)
     }
-    if (playerInfo.rightWall && keys.includes(playerInfo.rightKey)) {
+    else if (playerInfo.rightWall && keys.includes(playerInfo.rightKey)) {
         rotation = 12
         player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/3))+9)*50, 0, 50, 60)
+        mjBar.texture.trim = new PIXI.Rectangle(11, -8 + 31 -(playerInfo.magicJuice/playerInfo.magicJuiceMax)*31, 17 , (playerInfo.magicJuice/playerInfo.magicJuiceMax)*32)
+
     }
 }
 
@@ -781,7 +827,7 @@ const  animationLoop = async () => {
         console.log("dashing animation" + dashing)
         if (dashing == "left") {
             rotation = 2
-            player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/5))+17)*50, 0, 50, 60)
+            mjBar.texture.trim
         }
         else if (dashing == "right") {
             rotation = 6
@@ -806,17 +852,10 @@ const  animationLoop = async () => {
 
 
 
-    // if (animationState == "wallJumpLeft") {
-    //     rotation = 0
-    // }
-    // else if (animationState == "wallJumpRight") {
-    //     rotation = 12
-    // }
-    
     player.texture.rotate  = rotation;
-    // node_modules\pixi.js\pixi.js.d.ts line #12519
+    rotation = parseInt((JSON.stringify(rotation)).replace('6', "8"))
 
-    
+
 }
 let animatonInterval = setInterval(animationLoop, 50)
 
@@ -972,8 +1011,12 @@ if (!dashing) {
 playerInfo.terminalVelocity = -20;
 }
 
-if (playerInfo.vx == 0 && playerInfo.vy == 0 && playerInfo.grounded && keys.includes(playerInfo.mineKey)) {
+if (playerInfo.vx == 0 && playerInfo.vy == 0 && playerInfo.grounded && keys.includes(playerInfo.mineKey) && playerInfo.magicJuice > 0) {
     mineing = true;
+    if (playerInfo.magicJuice < 2) {
+        playerInfo.magicJuice = 1
+    }
+    playerInfo.magicJuice -= 1;
 }else if (mineing) {mineing = false}
 
     // |------------------------- quick fall -------------------------------------------|
@@ -1109,7 +1152,7 @@ async function errorDisplay() {
 
             // cheack for ground
             if(
-                Math.pow(player.y+player.height -  levelData.phyBox[i][0][1]-1, 2) < Math.pow(playerInfo.vy,2)) // cheacks for horosontal clipping
+                Math.pow(player.y+player.height -  levelData.phyBox[i][0][1]-1, 2) <= Math.pow(playerInfo.vy,2)) // cheacks for horosontal clipping
             {groundfound = true;     player.y = levelData.phyBox[i][0][1]-player.height +1;
                 
             }
@@ -1288,6 +1331,7 @@ if (rightwallfound){
                 deathAnim = true;
                 playerInfo.xv = 0;
                 playerInfo.yv = 0;
+                playerInfo.magicJuice = 0;
                 playerDeathSound.play();
                 await sleep(150)
                 player.texture.frame = new PIXI.Rectangle(-50, -60, 50, 60);
@@ -1295,6 +1339,7 @@ if (rightwallfound){
                 deathAnim = false;
                 player.x = playerInfo.lastSavePoint[0];
                 player.y = playerInfo.lastSavePoint[1];
+                
                 playerInfo.vx = 0;
                 playerInfo.vy = 0;
                 keys = [];
@@ -1317,6 +1362,8 @@ if (rightwallfound){
     player.x -= playerInfo.vx;
     player.y -= playerInfo.vy;
 
+    mjBar.x = player.x+9;
+    mjBar.y = player.y+21;
 
     if (playerInfo.dev && playerInfo.replay) {
         if (playerInfo.replayLength < replayLoop.length) {

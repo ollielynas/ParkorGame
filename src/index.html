@@ -7,6 +7,19 @@
     </head>
     <body>
 
+        <!-- 
+████████  ██████   ██████   ██████  ██      ███████     ██████  ███████ ██    ██     ███    ███  ██████  ██████  ███████ 
+   ██    ██    ██ ██       ██       ██      ██          ██   ██ ██      ██    ██     ████  ████ ██    ██ ██   ██ ██      
+   ██    ██    ██ ██   ███ ██   ███ ██      █████       ██   ██ █████   ██    ██     ██ ████ ██ ██    ██ ██   ██ █████   
+   ██    ██    ██ ██    ██ ██    ██ ██      ██          ██   ██ ██       ██  ██      ██  ██  ██ ██    ██ ██   ██ ██      
+   ██     ██████   ██████   ██████  ███████ ███████     ██████  ███████   ████       ██      ██  ██████  ██████  ███████ 
+
+    to toggle dev mode right click on the below element,
+        and edit css to make it visible, the click on it
+-->
+
+        <button id = "click_me_to_enter_dev_mode">click to toggle dev mode</button>
+
         <div id="data"></div>
 
         <a href="editor.html" >Level Editor →
@@ -21,12 +34,7 @@
             error
             <span id = bigspan> </span>
         </div>
-        <div id = "replayTools">
-    <input 
-            type="range"
-            id = "frameSlider"
-            oninput="{sliderToFrame(this.value)}"
-    ></input>
+        
         </div>
         <script src="app.bundle.js"></script>
         <script src="https://pixijs.github.io/pixi-filters/bin/filters.js"></script>
