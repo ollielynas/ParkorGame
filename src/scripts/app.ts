@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
-
+import { BloomFilter  } from 'pixi-filters';
+const bloomFilter = new BloomFilter();
 
 
 const getTexture = (name:string) => {
@@ -10,62 +11,30 @@ const getTexture = (name:string) => {
             // TODO: test if texture path is valid
     }catch (e) {
         console.log("texture not found")
+        texture = PIXI.Texture.from("images/brokenTexture_01");
     }
 
     return texture;
 }
 
 
+
 console.log(getTexture("invalid"))
 
-let playerAnimation = {
-    "idle": [
-            getTexture('src/images/idle_01.png')
-        ],
-    "run": [
-            getTexture('src/images/run_01.png'), 
-            getTexture('src/images/run_02.png')
-        ],
-    "wallSlide" : [
-        getTexture('src/images/wallSlide_01.png'), 
-        getTexture('src/images/wallSlide_02.png'), 
-        getTexture('src/images/wallSlide_03.png'), 
-    ], 
-    "broken": [
-        getTexture('src/images/brokenTexture_01.png'), 
-        getTexture('src/images/brokenTexture_02.png'),
-        getTexture('src/images/brokenTexture_03.png'), 
-        getTexture('src/images/brokenTexture_04.png'), 
-        getTexture('src/images/brokenTexture_05.png'), 
 
-    ],
-    "dash": [
-        getTexture('src/images/dash_01.png'), 
-        getTexture('src/images/dash_02.png'), 
-        getTexture('src/images/dash_03.png'), 
-        getTexture('src/images/dash_04.png'), 
-        getTexture('src/images/dash_05.png'), 
-    ],
-    "fall": [
-        getTexture('src/images/fall_01.png'),
-    ],
-    "jump": [
-        getTexture('src/images/jump_01.png'),
-    ],
-    "death": [
-        getTexture('src/images/death_01.png'),
-        getTexture('src/images/death_02.png'),
-        getTexture('src/images/death_03.png'),
-        getTexture('src/images/death_04.png'),
-        getTexture('src/images/death_05.png'),
-    ],
-    "wallJump": [
-        getTexture('src/images/wallJump.png'),
-    ]
-}
+const player = PIXI.Sprite.from('src/images/SpriteSheet.png');
+player.scale.set(1.3,1.3);
 
-const player = PIXI.Sprite.from('src/images/idle_01.png');
+console.log(new BloomFilter());
+//player.filters.push(new BloomFilter());
 
+// shader.addEventListener('change', () => {
+//     console.log(shader.value)
+//     colorMatrix.contrast(parseInt(shader.value)/1000, false);
+// })
+
+
+player.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
 // maby something like this https://m.media-amazon.com/images/I/71GqQB4KbiS._AC_UL320_.jpg
 const spike1 = PIXI.Sprite.from('.images/stagAttack.png');
@@ -189,6 +158,7 @@ let playerInfo:{[name:string]:any} = {
     upKey: "w",
     downKey: "s",
     jumpKey: " ",
+    mineKey: "k",
     canMagicDash: false,
     magicJuice: 50,
     magicJuiceMax: 50,
@@ -371,6 +341,7 @@ let disableFog = false;
 let displayingReplay:boolean = false;
 let dashing:string = "none"
 let deathAnim:boolean = false;
+let mineing:boolean = false;
 
 function downloadObjectAsJson(exportObj:any, exportName:string){
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, "\t"));
@@ -662,7 +633,7 @@ function create() {
         }
     }
 
-        if (event.key === playerInfo.jumpKey) {
+        if (event.key === playerInfo.jumpKey && !mineing) {
             jumpBuffer = 10;
         if (coyoteTime > 0){
             if (event.repeat) {return}
@@ -672,7 +643,7 @@ function create() {
         }
     }
 
-        if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash && dashing == "none") {
+        if (event.key === playerInfo.magicDashKey && playerInfo.canMagicDash && dashing == "none"&& !mineing) {
 
             if (keys.includes(playerInfo.upKey) && playerInfo.magicJuice >= 25) {
                 playerstart = player.x;
@@ -760,31 +731,34 @@ let animationState = "null";
 // |)|----------------------------------------------------------------- ANIMATION LOOP ------------------------------------------------|(|
 let animationLoopNum:number = 1;
 const  animationLoop = async () => {
+    player.texture.frame = new PIXI.Rectangle(0, 0, 50, 60);
     animationLoopNum += 1
     if (animationLoopNum >= 10) {animationLoopNum =1}
 
-    let texture = playerAnimation.idle[Math.floor(animationLoopNum/10 * playerAnimation.idle.length)]
 
-    if (playerInfo.vy < 0) {texture = playerAnimation.fall[Math.floor(animationLoopNum/10 * playerAnimation.fall.length)]}
+    if (playerInfo.vy < 0) {player.texture.frame = new PIXI.Rectangle(200, 0, 50, 60);}
 
-    else if (playerInfo.vy > 0) {texture = playerAnimation.jump[Math.floor(animationLoopNum/10 * playerAnimation.jump.length)]}
+    else if (playerInfo.vy > 0) {player.texture.frame = new PIXI.Rectangle(250, 0, 50, 60);}
 
 
-    if (rotation != 12 && rotation != 0) {
+    if (rotation != 0) {
         rotation = 0
     }
     if (playerInfo.grounded) {
         if (playerInfo.vx < 0) {
-            texture = playerAnimation.run[Math.floor(animationLoopNum/10 * playerAnimation.run.length)]
+            player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/4))+0)*50, 0, 50, 60)
             rotation = 0;
             footstepSound.play();
             if (footstepSound.currentTime < 0.01) {
             footstepSound.volume = (Math.floor(Math.random() * (800 - 200)) + 200) / 1000;
             }
         }else if (playerInfo.vx > 0) {
-            texture = playerAnimation.run[Math.floor(animationLoopNum/10 * playerAnimation.run.length)]
-            rotation = 12;
+            //rotation = 12;
             footstepSound.play();
+            player.texture.frame = new PIXI.Rectangle((3-(Math.floor(animationLoopNum/(10/4))+0))*50, 0, 50, 60)
+            if (footstepSound.currentTime < 0.01) {
+                footstepSound.volume = (Math.floor(Math.random() * (800 - 200)) + 200) / 1000;
+                }
         }else if (footstepSound.currentTime > 0.5) {
             footstepSound.currentTime = 0;
             footstepSound.pause();
@@ -795,57 +769,60 @@ const  animationLoop = async () => {
 
     if (playerInfo.hasWallJump && playerInfo.vy < 0) {
     if (playerInfo.leftWall && keys.includes(playerInfo.leftKey)) {
-        texture = playerAnimation.wallSlide[Math.floor(animationLoopNum/10 * playerAnimation.wallSlide.length)]
         rotation = 0
+        player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/3))+9)*50, 0, 50, 60)
     }
     if (playerInfo.rightWall && keys.includes(playerInfo.rightKey)) {
-        texture = playerAnimation.wallSlide[Math.floor(animationLoopNum/10 * playerAnimation.wallSlide.length)]
         rotation = 12
+        player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/3))+9)*50, 0, 50, 60)
     }
 }
-    player.height = 68;
-    player.width = 51;
 
     if (dashing != "none") {
         console.log("dashing animation" + dashing)
-        texture = playerAnimation.dash[Math.floor(animationLoopNum/10 * playerAnimation.dash.length)]
         if (dashing == "left") {
             rotation = 2
-            player.height = 51;
-            player.width = 68;
+            player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/5))+17)*50, 0, 50, 60)
         }
         else if (dashing == "right") {
             rotation = 6
-            player.height = 51;
-            player.width = 68;
+
+            player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/5))+17)*50, 0, 50, 60)
+
         }else if (dashing == "rightUp") {
             rotation = 7
         }else if (dashing == "leftUp") {
+
             rotation = 1
         }
     }
 
+    if (mineing) {
+        player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/3))+6)*50, 0, 50, 60)
+    }
+
     if (deathAnim) {
-        texture = playerAnimation.death[Math.floor(animationLoopNum/10 * playerAnimation.death.length)]
+        player.texture.frame = new PIXI.Rectangle((Math.floor(animationLoopNum/(10/5))+12)*50, 0, 50, 60)
     }
 
 
-    if (animationState == "wallJumpLeft") {
-        texture = playerAnimation.wallJump[Math.floor(animationLoopNum/10 * playerAnimation.wallJump.length)]
-        rotation = 0
-    }
-    else if (animationState == "wallJumpRight") {
-        texture = playerAnimation.wallJump[Math.floor(animationLoopNum/10 * playerAnimation.wallJump.length)]
-        rotation = 12
-    }
+
+    // if (animationState == "wallJumpLeft") {
+    //     rotation = 0
+    // }
+    // else if (animationState == "wallJumpRight") {
+    //     rotation = 12
+    // }
     
-    //texture = playerAnimation.broken[Math.floor(animationLoopNum/10 * playerAnimation.broken.length)]
-    player.texture = texture;
     player.texture.rotate  = rotation;
     // node_modules\pixi.js\pixi.js.d.ts line #12519
 
+    
 }
 let animatonInterval = setInterval(animationLoop, 50)
+
+
+
 
 let textAreas = [
     
@@ -860,15 +837,9 @@ for (let j = 0; j < engine.stage.children.length; j++) {
     }}
 }
 
-function deathSleep () {
-    console.log("slept")
-    deathAnim = false;
-    player.x = playerInfo.lastSavePoint[0];
-    player.y = playerInfo.lastSavePoint[1];
-    playerInfo.vx = 0;
-    playerInfo.vy = 0;
-    keys = [];
-}
+const sleep = (milliseconds:number) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  }
 
 let dataContainer = document.getElementById("data")!;
 let devSettingsContainer = document.getElementById("devToolInfo")!;
@@ -890,6 +861,16 @@ function keyReplace(key:string) {
     return key
 }
 let repeatStr = (n:number, s:string) => s.repeat(n);
+
+function removeItem(array:any[], item:any) {
+    var i = array.length;
+
+    while (i--) {
+        if (array[i] === item) {
+            array.splice(array.indexOf(item), 1);
+        }
+    }
+}
 
 
 function update() {
@@ -1001,6 +982,10 @@ if (!dashing) {
 playerInfo.terminalVelocity = -20;
 }
 
+if (playerInfo.vx == 0 && playerInfo.vy == 0 && playerInfo.grounded && keys.includes(playerInfo.mineKey)) {
+    mineing = true;
+}else if (mineing) {mineing = false}
+
     // |------------------------- quick fall -------------------------------------------|
     if (keys.includes(playerInfo.downKey)) {
         playerInfo.terminalVelocity = -100;
@@ -1018,7 +1003,7 @@ playerInfo.terminalVelocity = -20;
     }
 
     // |--------------------------------------------- moveing right --------------------|
-    if (keys.includes(playerInfo.rightKey)) {
+    if (keys.includes(playerInfo.rightKey) && !mineing) {
         if (playerInfo.vx > -10) {
         if (playerInfo.grounded) {
             playerInfo.vx -= 7;
@@ -1028,7 +1013,7 @@ playerInfo.terminalVelocity = -20;
 
     // |------------------------------ moveing left ----------------------------------|
 
-    if (keys.includes(playerInfo.leftKey)) {
+    if (keys.includes(playerInfo.leftKey) && !mineing) {
         if (playerInfo.vx < 10) {
         if (playerInfo.grounded) {
             playerInfo.vx += 7;
@@ -1309,11 +1294,21 @@ if (rightwallfound){
             && player.y < levelData.deathBox[i][1][1]
             )
             {
+                ( async () => {
                 deathAnim = true;
                 playerInfo.xv = 0;
                 playerInfo.yv = 0;
                 playerDeathSound.play();
-                setTimeout(deathSleep, 150);
+                await sleep(150)
+                player.texture.frame = new PIXI.Rectangle(-50, -60, 50, 60);
+                await sleep(150);
+                deathAnim = false;
+                player.x = playerInfo.lastSavePoint[0];
+                player.y = playerInfo.lastSavePoint[1];
+                playerInfo.vx = 0;
+                playerInfo.vy = 0;
+                keys = [];
+                })();
                 break;
             }
     }
